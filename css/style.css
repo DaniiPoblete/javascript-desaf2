@@ -1,0 +1,57 @@
+* {
+	font-family: 'Raleway', sans-serif;
+	margin: 0;
+	padding: 0;
+}
+
+main {
+	display: flex;
+	align-items: flex-start;
+	padding: 2rem 3rem;
+}
+
+.list {
+	display: flex;
+	flex-basis: 100%;
+	flex-direction: column;
+	box-sizing: border-box;
+	margin: 0 0.5rem;
+	padding: 1rem;
+	border-radius: 0.5rem;
+}
+
+.list:nth-child(1) {
+	background: #cec6d9;
+}
+
+.list:nth-child(2) {
+	background: #c7dbe7;
+}
+
+.list:nth-child(3) {
+	background: #cfe3ca;
+}
+
+.list p {
+	font-weight: 600;
+	margin-bottom: 1rem;
+}
+
+.list ul {
+	margin-bottom: 1rem;
+	list-style: none;
+}
+
+.list li {
+	margin: 0.5rem 0;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+	background: #ffffffa8;
+}
+
+.list button {
+	padding: 0.5rem;
+	cursor: pointer;
+	border: 1px solid white;
+	background: none;
+}
