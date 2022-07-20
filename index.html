@@ -7,7 +7,8 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300;400;500;600;700;800;900&display=swap"
+	      rel="stylesheet">
 	<link rel="stylesheet" href="css/style.css">
 	<title>Desafío 2</title>
 </head>
@@ -16,21 +17,28 @@
 		<div class="list">
 			<p>Lista de tareas</p>
 			<ul id="list1">
-				<li>Tarea Ejemplo</li>
+				<li id="card1">
+					<span onclick="moveCard(1)">Tarea 1</span>
+					<button onclick="deleteCard(1)">x</button>
+				</li>
+				<li id="card2">
+					<span onclick="moveCard(2)">Tarea 2</span>
+					<button onclick="deleteCard(2)">x</button>
+				</li>
 			</ul>
-			<button onclick="addCard({id: 1, name: 'Lista de tareas'})">Agregar una tarjeta</button>
+			<button onclick="addCard(1)">Agregar una tarjeta</button>
 		</div>
 		<div class="list">
 			<p>En proceso</p>
 			<ul id="list2">
 			</ul>
-			<button onclick="addCard({id: 2, name: 'En proceso'})">Agregar una tarjeta</button>
+			<button onclick="addCard(2)">Agregar una tarjeta</button>
 		</div>
 		<div class="list">
 			<p>Hecho</p>
 			<ul id="list3">
 			</ul>
-			<button onclick="addCard({id: 3, name: 'Hecho'})">Agregar una tarjeta</button>
+			<button onclick="addCard(3)">Agregar una tarjeta</button>
 		</div>
 	</main>
 	<script src="js/main.js"></script>
