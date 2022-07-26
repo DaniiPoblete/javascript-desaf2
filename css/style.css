@@ -6,8 +6,27 @@
 
 main {
 	display: flex;
-	align-items: flex-start;
+	flex-direction: column;
 	padding: 2rem 3rem;
+}
+
+.tips {
+	font-size: 0.8rem;
+	align-self: flex-start;
+	margin-bottom: 2rem;
+	padding: 1rem;
+	border: 1px solid #607d8b;
+	border-radius: 1rem;
+}
+
+.tips ul {
+	padding-left: 1rem;
+}
+
+.lists {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
 }
 
 .list {
@@ -15,7 +34,6 @@ main {
 	flex-basis: 100%;
 	flex-direction: column;
 	box-sizing: border-box;
-	margin: 0 0.5rem;
 	padding: 1rem;
 	border-radius: 0.5rem;
 }
@@ -58,11 +76,9 @@ main {
 }
 
 .list li > button {
-	border: none;
-	padding: 0 0.5rem;
+	padding: 0 0.2rem;
 	cursor: pointer;
-	font-size: 1rem;
-	font-weight: 500;
+	border: none;
 }
 
 .list > button {
@@ -70,4 +86,8 @@ main {
 	cursor: pointer;
 	border: 1px solid white;
 	background: none;
+}
+
+.fa-xmark {
+	font-size: 1rem;
 }

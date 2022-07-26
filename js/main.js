@@ -38,24 +38,25 @@ function addCard(listId) {
 
     if (isValid) {
         idCount += 1;
-        const listElement = document.getElementById('list' + list.id);
-        const cardElement = document.createElement('li');
-        cardElement.setAttribute('id', 'card' + idCount);
+        const listElement = document.querySelector('#list' + list.id);
 
-        // Agrega span con funcionalidad mover
-        const spanElement = document.createElement('span');
-        spanElement.setAttribute('onclick', `moveCard(${idCount})`);
-        spanElement.appendChild(document.createTextNode(cardName));
+        const html = `
+            <li id="card${idCount}">
+                <span onclick="moveCard(${idCount})">${cardName}</span>
+                <button onclick="editCard(${idCount})"><i class="fa-solid fa-pencil"></i></button>
+                <button onclick="deleteCard(${idCount})"><i class="fa-solid fa-xmark"></i></button>
+            </li>
+        `;
 
-        // Agregar btn con funcionalidad borrar
-        const buttonElement = document.createElement('button');
-        buttonElement.appendChild(document.createTextNode('x'));
-        buttonElement.setAttribute('onclick', `deleteCard(${idCount})`);
-
-        cardElement.appendChild(spanElement);
-        cardElement.appendChild(buttonElement);
+        const template = document.createElement('template');
+        template.innerHTML = html.trim();
+        const cardElement = template.content.firstElementChild;
         listElement.appendChild(cardElement);
+
         userCards.push({id: idCount, name: cardName, listId: list.id});
+
+        console.log(`Tarjeta "${cardName}" agregada exitosamente`)
+        console.log('Nuevo array > ', userCards)
     }
 }
 
@@ -66,9 +67,9 @@ function moveCard(cardId) {
 
     if (card.listId !== newListId && newListId > 0 && newListId <= 3) {
         if (validateSameName(card.name, list)) {
-            const cardElement = document.getElementById('card' + card.id);
+            const cardElement = document.querySelector('#card' + card.id);
             cardElement.remove();
-            const newListElement = document.getElementById('list' + newListId);
+            const newListElement = document.querySelector('#list' + newListId);
             newListElement.appendChild(cardElement);
             card.listId = newListId;
 
@@ -85,7 +86,7 @@ function moveCard(cardId) {
 
 function deleteCard(cardId) {
     const card = userCards.find(obj => obj.id === cardId);
-    const cardElement = document.getElementById('card' + cardId);
+    const cardElement = document.querySelector('#card' + cardId);
 
     const confirmation = parseInt(prompt(`¿Estás seguro de querer borrar la tarjeta "${card.name}"? Ingresa 1 para confirmar`));
 
@@ -94,6 +95,21 @@ function deleteCard(cardId) {
         userCards = userCards.filter(obj => obj.id !== card.id);
 
         console.log(`Tarjeta "${card.name}" eliminada exitosamente`)
+        console.log('Nuevo array > ', userCards)
+    }
+}
+
+function editCard(cardId) {
+    const card = userCards.find(obj => obj.id === cardId);
+    const list = userLists.find(obj => obj.id === card.listId);
+    const newName = prompt('Ingresa la nueva información de la tarjeta');
+
+    if (validateSameName(newName, list)) {
+        const cardElement = document.querySelector('#card' + cardId);
+        cardElement.querySelector('span').textContent = newName;
+        card.name = newName;
+
+        console.log(`Tarjeta "${card.name}" actualizada exitosamente`)
         console.log('Nuevo array > ', userCards)
     }
 }
