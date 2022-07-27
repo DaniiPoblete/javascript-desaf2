@@ -23,35 +23,7 @@
 				<li>Selecciona el ícono de cruz para eliminar una tarjeta.</li>
 			</ul>
 		</div>
-		<div class="lists">
-			<div class="list">
-				<p>Lista de tareas</p>
-				<ul id="list1">
-					<li id="card1">
-						<span onclick="moveCard(1)">Tarea 1</span>
-						<button onclick="editCard(1)"><i class="fa-solid fa-pencil"></i></button>
-						<button onclick="deleteCard(1)"><i class="fa-solid fa-xmark"></i></button>
-					</li>
-					<li id="card2">
-						<span onclick="moveCard(2)">Tarea 2</span>
-						<button onclick="editCard(2)"><i class="fa-solid fa-pencil"></i></button>
-						<button onclick="deleteCard(2)"><i class="fa-solid fa-xmark"></i></button>
-					</li>
-				</ul>
-				<button onclick="addCard(1)">Agregar una tarjeta</button>
-			</div>
-			<div class="list">
-				<p>En proceso</p>
-				<ul id="list2">
-				</ul>
-				<button onclick="addCard(2)">Agregar una tarjeta</button>
-			</div>
-			<div class="list">
-				<p>Hecho</p>
-				<ul id="list3">
-				</ul>
-				<button onclick="addCard(3)">Agregar una tarjeta</button>
-			</div>
+		<div class="lists" id="lists">
 		</div>
 	</main>
 	<script src="js/main.js"></script>
