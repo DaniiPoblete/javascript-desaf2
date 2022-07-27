@@ -26,7 +26,7 @@ main {
 .lists {
 	display: flex;
 	align-items: flex-start;
-	gap: 0.5rem;
+	gap: 1rem;
 }
 
 .list {
@@ -75,10 +75,9 @@ main {
 	cursor: pointer;
 }
 
-.list li > button {
+.list li > i {
 	padding: 0 0.2rem;
 	cursor: pointer;
-	border: none;
 }
 
 .list > button {
@@ -88,6 +87,6 @@ main {
 	background: none;
 }
 
-.fa-xmark {
-	font-size: 1rem;
+.fa-pencil {
+	font-size: 0.8rem;
 }

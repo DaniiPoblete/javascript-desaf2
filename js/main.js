@@ -23,8 +23,11 @@ const userLists = [
 
 let idCount = userLists.map(obj => obj.cards).flat().length; // revisar
 
+const listsElement = document.querySelector('#lists');
+showLists();
+setEvents();
+
 function showLists() {
-    const listsElement = document.querySelector('#lists');
     let listsTemplate = ``;
 
     userLists.forEach(list => {
@@ -33,9 +36,9 @@ function showLists() {
         list.cards.forEach(card => {
             cardsTemplate += `
                     <li id="card${card.id}">
-                        <span onclick="moveCard(${card.id})">${card.name}</span>
-                        <button onclick="editCard(${card.id})"><i class="fa-solid fa-pencil"></i></button>
-                        <button onclick="deleteCard(${card.id})"><i class="fa-solid fa-xmark"></i></button>
+                        <span data-id="${card.id}">${card.name}</span>
+                        <i class="edit-btn fa-solid fa-pencil" data-id="${card.id}"></i>
+                        <i class="delete-btn fa-solid fa-xmark" data-id="${card.id}"></i>
                     </li>
                 `;
         })
@@ -46,7 +49,7 @@ function showLists() {
                     <ul id="list${list.id}">
                     ${cardsTemplate}
                     </ul>
-                <button onclick="addCard(${list.id})">Agregar una tarjeta</button>
+                <button class="add-btn" data-id="${list.id}">Agregar una tarjeta</button>
             </div>
         `;
     })
@@ -54,7 +57,24 @@ function showLists() {
     listsElement.innerHTML = listsTemplate;
 }
 
-showLists();
+function setEvents() {
+    listsElement.addEventListener('click', (e) => {
+        if (e.target) {
+            if (e.target.tagName === 'SPAN') {
+                moveCard(parseInt(e.target.getAttribute('data-id')));
+            }
+            if (e.target.classList.contains('edit-btn')) {
+                editCard(parseInt(e.target.getAttribute('data-id')));
+            }
+            if (e.target.classList.contains('delete-btn')) {
+                deleteCard(parseInt(e.target.getAttribute('data-id')));
+            }
+            if (e.target.className === 'add-btn') {
+                addCard(parseInt(e.target.getAttribute('data-id')))
+            }
+        }
+    })
+}
 
 function validateCard(cardName, list) {
     if (!cardName) return false;
@@ -87,9 +107,9 @@ function addCard(listId) {
 
         const html = `
             <li id="card${idCount}">
-                <span onclick="moveCard(${idCount})">${cardName}</span>
-                <button onclick="editCard(${idCount})"><i class="fa-solid fa-pencil"></i></button>
-                <button onclick="deleteCard(${idCount})"><i class="fa-solid fa-xmark"></i></button>
+                <span data-id=${idCount}">${cardName}</span>
+                <i class="edit-btn fa-solid fa-pencil" data-id=${idCount}"></i>
+                <i class="delete-btn fa-solid fa-xmark" data-id=${idCount}"></i>
             </li>
         `;
 
@@ -108,7 +128,6 @@ function addCard(listId) {
 function moveCard(cardId) {
     const newListId = parseInt(prompt('¿A qué lista deseas mover la tarea? Ingresa un número 1: "Lista de tareas", 2: "En proceso", 3: "Hecho"'));
     const userCards = userLists.map(obj => obj.cards).flat(); // revisar
-
     const card = userCards.find(obj => obj.id === cardId);
     const oldList = userLists.find(obj => obj.id === card.listId);
     const newList = userLists.find(obj => obj.id === newListId);
@@ -157,7 +176,7 @@ function editCard(cardId) {
     const list = userLists.find(obj => obj.id === card.listId);
     const newName = prompt('Ingresa la nueva información de la tarjeta');
 
-    if (validateSameName(newName, list)) {
+    if (validateCard(newName, list)) {
         const cardElement = document.querySelector('#card' + cardId);
         cardElement.querySelector('span').textContent = newName;
         card.name = newName;
