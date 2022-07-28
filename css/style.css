@@ -62,7 +62,7 @@ main {
 
 .list li {
 	display: flex;
-	align-items: center;
+	align-items: start;
 	justify-content: space-between;
 	margin: 0.5rem 0;
 	padding: 0.5rem;
@@ -70,14 +70,19 @@ main {
 	background: #ffffffa8;
 }
 
-.list li span {
-	width: 100%;
+.list li div {
+	display: flex;
+	align-items: center;
+}
+
+.list li i {
+	font-size: 0.8rem;
+	padding: 0 2px;
 	cursor: pointer;
 }
 
-.list li > i {
-	padding: 0 0.2rem;
-	cursor: pointer;
+.list li i.fa-xmark {
+	font-size: 1rem;
 }
 
 .list > button {
@@ -85,8 +90,4 @@ main {
 	cursor: pointer;
 	border: 1px solid white;
 	background: none;
-}
-
-.fa-pencil {
-	font-size: 0.8rem;
 }
