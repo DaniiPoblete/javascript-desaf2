@@ -3,7 +3,7 @@ const userLists = [
         id: 1,
         name: 'Lista de tareas',
         cards: [
-            // {id: 1, name: 'Tarea 1', listId: 1},
+            {id: 1, name: 'Tarea 1', listId: 1},
             // {id: 2, name: 'Tarea 2', listId: 1},
         ]
     },
@@ -21,11 +21,20 @@ const userLists = [
     },
 ];
 
-let idCount = userLists.map(obj => obj.cards).flat().length; // revisar
-
+let idCount = getAllUserCards().length;
 const listsElement = document.querySelector('#lists');
+
 showLists();
 setEvents();
+
+function getAllUserCards() {
+    return userLists.map(obj => obj.cards).flat();
+}
+
+function getCard(cardId) {
+    const userCards = getAllUserCards();
+    return userCards.find(obj => obj.id === cardId);
+}
 
 function showLists() {
     let listsTemplate = ``;
@@ -79,7 +88,6 @@ function setEvents() {
     })
 }
 
-// TODO agregar eventos con tecla enter y escape
 function addCard(listId) {
     const list = userLists.find(obj => obj.id === listId);
     const listElement = document.querySelector('#list' + list.id);
@@ -89,7 +97,7 @@ function addCard(listId) {
     const inputElement = document.querySelector('#input');
     inputElement.focus();
 
-    inputElement.addEventListener('focusout', e => {
+    function saveCard() {
         if (inputElement.textContent.trim().length > 0) {
             const cardName = inputElement.textContent;
             idCount += 1;
@@ -115,40 +123,62 @@ function addCard(listId) {
             console.log(`Tarjeta "${cardName}" agregada exitosamente`)
             console.log('Nuevo array > ', userLists)
         }
+    }
 
+    inputElement.addEventListener('focusout', e => {
         inputElement.remove();
+    })
+
+    inputElement.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            saveCard();
+            inputElement.blur();
+        }
+
+        if (e.key === 'Escape') {
+            inputElement.blur();
+        }
     })
 }
 
-// TODO agregar eventos con tecla enter y escape
 function editCard(cardId) {
-    const userCards = userLists.map(obj => obj.cards).flat(); // revisar
-    const card = userCards.find(obj => obj.id === cardId);
+    const card = getCard(cardId);
     const cardElement = document.querySelector('#card' + cardId);
     const spanElement = cardElement.querySelector('span');
 
     spanElement.setAttribute('contenteditable', 'true');
-    spanElement.focus();
+    setCursorPositionAtEnd(spanElement);
 
-    spanElement.addEventListener('focusout', e => {
+    function saveCard() {
         if (spanElement.textContent.trim().length > 0 && spanElement.textContent !== card.name) {
             card.name = spanElement.textContent;
 
             console.log(`Tarjeta "${card.name}" actualizada exitosamente`)
             console.log('Nuevo array > ', userLists)
-        } else {
-            spanElement.textContent = card.name;
+        }
+    }
+
+    spanElement.addEventListener('focusout', e => {
+        spanElement.setAttribute('contenteditable', 'false');
+        spanElement.textContent = card.name;
+    })
+
+    spanElement.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            saveCard();
+            spanElement.blur();
         }
 
-        spanElement.setAttribute('contenteditable', 'false');
+        if (e.key === 'Escape') {
+            spanElement.blur();
+        }
     })
 }
 
 // TODO agregar manejo drag&drop
 function moveCard(cardId) {
     const newListId = parseInt(prompt('¿A qué lista deseas mover la tarea? Ingresa un número 1: "Lista de tareas", 2: "En proceso", 3: "Hecho"'));
-    const userCards = userLists.map(obj => obj.cards).flat(); // revisar
-    const card = userCards.find(obj => obj.id === cardId);
+    const card = getCard(cardId);
     const oldList = userLists.find(obj => obj.id === card.listId);
     const newList = userLists.find(obj => obj.id === newListId);
 
@@ -173,8 +203,7 @@ function moveCard(cardId) {
 }
 
 function deleteCard(cardId) {
-    const userCards = userLists.map(obj => obj.cards).flat(); // revisar
-    const card = userCards.find(obj => obj.id === cardId);
+    const card = getCard(cardId);
     const list = userLists.find(obj => obj.id === card.listId);
     const cardElement = document.querySelector('#card' + cardId);
     const confirmation = window.confirm(`¿Estás seguro que deseas borrar la tarjeta "${card.name}"?`);
@@ -186,4 +215,15 @@ function deleteCard(cardId) {
         console.log(`Tarjeta "${card.name}" eliminada exitosamente`)
         console.log('Nuevo array > ', userLists)
     }
+}
+
+// Función encontrada en internet
+function setCursorPositionAtEnd(element) {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    selection.removeAllRanges();
+    range.selectNodeContents(element);
+    range.collapse(false);
+    selection.addRange(range);
+    element.focus();
 }

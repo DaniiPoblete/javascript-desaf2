@@ -68,11 +68,16 @@ main {
 	padding: 0.5rem;
 	border-radius: 0.5rem;
 	background: #ffffffa8;
+	gap: 1rem;
 }
 
 .list li div {
 	display: flex;
 	align-items: center;
+}
+
+.list li span {
+	padding: 0 4px;
 }
 
 .list li i {
