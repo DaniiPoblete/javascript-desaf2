@@ -36,6 +36,10 @@ function getCard(cardId) {
     return userCards.find(obj => obj.id === cardId);
 }
 
+function getList(listId) {
+    return userLists.find(obj => obj.id === listId);
+}
+
 function showLists() {
     let listsTemplate = ``;
 
@@ -89,7 +93,7 @@ function setEvents() {
 }
 
 function addCard(listId) {
-    const list = userLists.find(obj => obj.id === listId);
+    const list = getList(listId);
     const listElement = document.querySelector('#list' + list.id);
 
     listElement.innerHTML += `<li id="input" contenteditable="true"></li>`;
@@ -179,8 +183,8 @@ function editCard(cardId) {
 function moveCard(cardId) {
     const newListId = parseInt(prompt('¿A qué lista deseas mover la tarea? Ingresa un número 1: "Lista de tareas", 2: "En proceso", 3: "Hecho"'));
     const card = getCard(cardId);
-    const oldList = userLists.find(obj => obj.id === card.listId);
-    const newList = userLists.find(obj => obj.id === newListId);
+    const oldList = getList(card.listId);
+    const newList = getList(newListId);
 
     if (card.listId !== newListId && newListId > 0 && newListId <= 3) {
         const cardElement = document.querySelector('#card' + card.id);
@@ -204,7 +208,7 @@ function moveCard(cardId) {
 
 function deleteCard(cardId) {
     const card = getCard(cardId);
-    const list = userLists.find(obj => obj.id === card.listId);
+    const list = getList(card.listId);
     const cardElement = document.querySelector('#card' + cardId);
     const confirmation = window.confirm(`¿Estás seguro que deseas borrar la tarjeta "${card.name}"?`);
 
