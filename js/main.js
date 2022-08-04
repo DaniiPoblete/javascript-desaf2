@@ -1,17 +1,19 @@
+/* Listas y tarjetas del usuario */
 const userLists = [
     {
         id: 1,
         name: 'Lista de tareas',
         cards: [
             {id: 1, name: 'Tarea 1', listId: 1},
-            // {id: 2, name: 'Tarea 2', listId: 1},
         ]
     },
     {
         id: 2,
         name: 'En proceso',
         cards: [
-            // {id: 3, name: 'Tarea 3', listId: 2},
+            {id: 2, name: 'Tarea 2', listId: 2},
+            {id: 3, name: 'Tarea 3', listId: 2},
+            {id: 4, name: 'Tarea 4', listId: 2},
         ]
     },
     {
@@ -21,12 +23,130 @@ const userLists = [
     },
 ];
 
-let idCount = getAllUserCards().length;
-const listsElement = document.querySelector('#lists');
+const listsElement = document.querySelector('#lanes');
+
+
+/* Genera HTML en base al arreglo userLists */
+function showLists() {
+    let listsTemplate = ``;
+
+    userLists.forEach(list => {
+        let cardsTemplate = ``;
+
+        list.cards.forEach(card => {
+            cardsTemplate += `
+                    <li id="card${card.id}" data-id="${card.id}" draggable="true">
+                        <span data-id="${card.id}" contenteditable="false">${card.name}</span>
+                        <div>
+                            <i class="edit-btn fa-solid fa-pencil" data-id="${card.id}"></i>
+                            <i class="move-btn fa-solid fa-arrows-up-down-left-right" data-id=${card.id}"></i>
+                            <i class="delete-btn fa-solid fa-xmark" data-id="${card.id}"></i>
+                        </div>                  
+                    </li>
+                `;
+        })
+
+        listsTemplate += `
+            <div class="lane">
+                <p>${list.name}</p>
+                    <ul class="list" id="list${list.id}" data-id="${list.id}">
+                        ${cardsTemplate}
+                    </ul>
+                <button class="add-btn" data-id="${list.id}">Agregar una tarjeta</button>
+            </div>
+        `;
+    })
+
+    listsElement.innerHTML = listsTemplate;
+}
 
 showLists();
-setEvents();
 
+/* Se agregan Event Listener para funcionalidades Agregar, Editar y Eliminar tarjeta */
+function setCardEvents() {
+    listsElement.addEventListener('click', (e) => {
+        if (e.target) {
+            if (e.target.classList.contains('edit-btn')) {
+                editCard(parseInt(e.target.getAttribute('data-id')));
+            }
+            if (e.target.classList.contains('delete-btn')) {
+                deleteCard(parseInt(e.target.getAttribute('data-id')));
+            }
+            if (e.target.className === 'add-btn') {
+                addCard(parseInt(e.target.getAttribute('data-id')));
+            }
+        }
+    });
+}
+
+setCardEvents();
+
+/* Funcionalidad Drag & Drop */
+// TODO revisar caso en que se dropea en contenedor no habilitado
+
+const ulElements = document.querySelectorAll('.lane');
+let dragSourceCard;
+let dragSourceList;
+let dragTargetCard;
+let dragTargetList;
+
+function setDragAndDropEvents() {
+    ulElements.forEach(el => {
+        el.addEventListener('dragstart', handleDragStart);
+        el.addEventListener('dragend', handleDragEnd);
+        el.addEventListener('dragover', handleDragOver);
+        el.addEventListener('dragenter', handleDragEnter);
+        el.addEventListener('drop', handleDrop);
+    })
+}
+
+function handleDragStart(e) {
+    if (e.target.tagName === 'LI') {
+        dragSourceCard = e.target;
+        dragSourceList = dragSourceCard.parentElement;
+        dragSourceCard.classList.add('dragging');
+    }
+}
+
+function handleDragEnd(e) {
+    if (e.target.tagName === 'LI') {
+        dragSourceCard.classList.remove('dragging');
+        moveCard();
+    }
+}
+
+function handleDragEnter(e) {
+    if (e.target.classList.contains('list')) { // sobre lista vacía
+        dragTargetList = e.target;
+        dragTargetCard = null;
+        dragTargetList.appendChild(dragSourceCard);
+    }
+
+    if (e.target.tagName === 'LI' && !e.target.classList.contains('dragging')) { // sobre tarjeta
+        dragTargetCard = e.target;
+        dragTargetList = dragTargetCard.parentElement;
+        dragTargetCard.parentNode.insertBefore(dragSourceCard, dragTargetCard.nextSibling);
+        // TODO agregar funcionalidad para mover tarjeta sobre otra
+    }
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+
+    return false;
+}
+
+function handleDrop(e) {
+    e.stopPropagation();
+
+    return false;
+}
+
+setDragAndDropEvents();
+
+/* Funciones de búsqueda (Listas y Tarjetas) */
 function getAllUserCards() {
     return userLists.map(obj => obj.cards).flat();
 }
@@ -40,58 +160,9 @@ function getList(listId) {
     return userLists.find(obj => obj.id === listId);
 }
 
-function showLists() {
-    let listsTemplate = ``;
+let idCount = getAllUserCards().length;
 
-    userLists.forEach(list => {
-        let cardsTemplate = ``;
-
-        list.cards.forEach(card => {
-            cardsTemplate += `
-                    <li id="card${card.id}" data-id="${card.id}">
-                        <span contenteditable="false" data-id="${card.id}">${card.name}</span>
-                        <div>
-                            <i class="edit-btn fa-solid fa-pencil" data-id="${card.id}"></i>
-                            <i class="move-btn fa-solid fa-arrows-up-down-left-right" data-id=${card.id}"></i>
-                            <i class="delete-btn fa-solid fa-xmark" data-id="${card.id}"></i>
-                        </div>                  
-                    </li>
-                `;
-        })
-
-        listsTemplate += `
-            <div class="list">
-                <p>${list.name}</p>
-                    <ul id="list${list.id}">
-                        ${cardsTemplate}
-                    </ul>
-                <button class="add-btn" data-id="${list.id}">Agregar una tarjeta</button>
-            </div>
-        `;
-    })
-
-    listsElement.innerHTML = listsTemplate;
-}
-
-function setEvents() {
-    listsElement.addEventListener('click', (e) => {
-        if (e.target) {
-            if (e.target.classList.contains('move-btn')) {
-                moveCard(parseInt(e.target.getAttribute('data-id')));
-            }
-            if (e.target.classList.contains('edit-btn') || (e.target.tagName === 'LI')) {
-                editCard(parseInt(e.target.getAttribute('data-id')));
-            }
-            if (e.target.classList.contains('delete-btn')) {
-                deleteCard(parseInt(e.target.getAttribute('data-id')));
-            }
-            if (e.target.className === 'add-btn') {
-                addCard(parseInt(e.target.getAttribute('data-id')))
-            }
-        }
-    })
-}
-
+/* Funcionalidad para agregar Tarjeta */
 function addCard(listId) {
     const list = getList(listId);
     const listElement = document.querySelector('#list' + list.id);
@@ -107,8 +178,8 @@ function addCard(listId) {
             idCount += 1;
 
             const html = `
-                <li id="card${idCount}" data-id="${idCount}">
-                    <span contenteditable="false" data-id=${idCount}">${cardName}</span>
+                <li id="card${idCount}" data-id="${idCount}" draggable="true">
+                    <span data-id=${idCount}" contenteditable="false">${cardName}</span>
                     <div>
                         <i class="edit-btn fa-solid fa-pencil" data-id=${idCount}"></i>
                         <i class="move-btn fa-solid fa-arrows-up-down-left-right" data-id=${idCount}"></i>
@@ -145,6 +216,7 @@ function addCard(listId) {
     })
 }
 
+/* Funcionalidad para editar Tarjeta */
 function editCard(cardId) {
     const card = getCard(cardId);
     const cardElement = document.querySelector('#card' + cardId);
@@ -179,33 +251,30 @@ function editCard(cardId) {
     })
 }
 
-// TODO agregar manejo drag&drop
-function moveCard(cardId) {
-    const newListId = parseInt(prompt('¿A qué lista deseas mover la tarea? Ingresa un número 1: "Lista de tareas", 2: "En proceso", 3: "Hecho"'));
-    const card = getCard(cardId);
+/* Funcionalidad para mover Tarjeta */
+function moveCard() {
+    const card = getCard(parseInt(dragSourceCard.getAttribute('data-id')));
     const oldList = getList(card.listId);
-    const newList = getList(newListId);
+    const newList = getList(parseInt(dragTargetList.getAttribute('data-id')));
+    let afterCard;
 
-    if (card.listId !== newListId && newListId > 0 && newListId <= 3) {
-        const cardElement = document.querySelector('#card' + card.id);
-        cardElement.remove();
-        const newListElement = document.querySelector('#list' + newListId);
-        newListElement.appendChild(cardElement);
+    card.listId = newList.id;
+    oldList.cards = oldList.cards.filter(obj => obj.id !== card.id);
 
-        card.listId = newListId;
-        oldList.cards = oldList.cards.filter(obj => obj.id !== card.id);
-        newList.cards.push(card);
+    if (dragTargetCard) {
+        afterCard = getCard(parseInt(dragTargetCard.getAttribute('data-id')));
+        let i = newList.cards.findIndex(obj => obj.id === afterCard.id)
 
-        console.log(`Tarjeta "${card.name}" movida exitosamente`)
-        console.log('Nuevo array > ', userLists)
-
-    } else if (card.listId === newListId) {
-        alert('La tarea ya pertenece a esa lista');
+        newList.cards.splice(i+1, 0, card);
     } else {
-        alert('Ingrese una opción válida');
+        newList.cards.push(card);
     }
+
+    console.log(`Tarjeta "${card.name}" movida exitosamente`)
+    console.log('Nuevo array > ', userLists)
 }
 
+/* Funcionalidad para eliminar Tarjeta */
 function deleteCard(cardId) {
     const card = getCard(cardId);
     const list = getList(card.listId);
@@ -221,7 +290,7 @@ function deleteCard(cardId) {
     }
 }
 
-// Función encontrada en internet
+/* Funcionalidad para posicionar el cursor al final del texto editable */
 function setCursorPositionAtEnd(element) {
     const selection = window.getSelection();
     const range = document.createRange();

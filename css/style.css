@@ -23,13 +23,13 @@ main {
 	padding-left: 1rem;
 }
 
-.lists {
+.lanes {
 	display: flex;
 	align-items: flex-start;
 	gap: 1rem;
 }
 
-.list {
+.lane {
 	display: flex;
 	flex-basis: 100%;
 	flex-direction: column;
@@ -38,26 +38,26 @@ main {
 	border-radius: 0.5rem;
 }
 
-.list:nth-child(1) {
+.lane:nth-child(1) {
 	background: #cec6d9;
 }
 
-.list:nth-child(2) {
+.lane:nth-child(2) {
 	background: #c7dbe7;
 }
 
-.list:nth-child(3) {
+.lane:nth-child(3) {
 	background: #cfe3ca;
 }
 
-.list p {
+.lane p {
 	font-weight: 600;
 	margin-bottom: 1rem;
 }
 
-.list ul {
+.lane .list {
 	margin-bottom: 1rem;
-	list-style: none;
+	min-height: 2rem;
 }
 
 .list li {
@@ -90,9 +90,13 @@ main {
 	font-size: 1rem;
 }
 
-.list > button {
+.lane button {
 	padding: 0.5rem;
 	cursor: pointer;
 	border: 1px solid white;
 	background: none;
+}
+
+.list li.dragging {
+	opacity: 0.4;
 }
