@@ -25,7 +25,6 @@ const userLists = [
 
 const listsElement = document.querySelector('#lanes');
 
-
 /* Genera HTML en base al arreglo userLists */
 function showLists() {
     let listsTemplate = ``;
@@ -35,24 +34,24 @@ function showLists() {
 
         list.cards.forEach(card => {
             cardsTemplate += `
-                    <li id="card${card.id}" data-id="${card.id}" draggable="true">
-                        <span data-id="${card.id}" contenteditable="false">${card.name}</span>
-                        <div>
-                            <i class="edit-btn fa-solid fa-pencil" data-id="${card.id}"></i>
-                            <i class="move-btn fa-solid fa-arrows-up-down-left-right" data-id=${card.id}"></i>
-                            <i class="delete-btn fa-solid fa-xmark" data-id="${card.id}"></i>
-                        </div>                  
-                    </li>
-                `;
+                <li data-id="${card.id}" draggable="true">
+                    <span contenteditable="false">${card.name}</span>
+                    <div>
+                        <i class="edit-btn fa-solid fa-pencil"></i>
+                        <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
+                        <i class="delete-btn fa-solid fa-xmark"></i>
+                    </div>
+                </li>
+            `;
         })
 
         listsTemplate += `
             <div class="lane">
                 <p>${list.name}</p>
-                    <ul class="list" id="list${list.id}" data-id="${list.id}">
-                        ${cardsTemplate}
-                    </ul>
-                <button class="add-btn" data-id="${list.id}">Agregar una tarjeta</button>
+                <ul class="list" data-id="${list.id}">
+                    ${cardsTemplate}
+                </ul>
+                <button class="add-btn">Agregar una tarjeta</button>
             </div>
         `;
     })
@@ -67,13 +66,16 @@ function setCardEvents() {
     listsElement.addEventListener('click', (e) => {
         if (e.target) {
             if (e.target.classList.contains('edit-btn')) {
-                editCard(parseInt(e.target.getAttribute('data-id')));
+                let elementCardId = parseInt(e.target.closest('li').getAttribute('data-id'));
+                editCard(elementCardId);
             }
             if (e.target.classList.contains('delete-btn')) {
-                deleteCard(parseInt(e.target.getAttribute('data-id')));
+                let elementCardId = parseInt(e.target.closest('li').getAttribute('data-id'));
+                deleteCard(elementCardId);
             }
             if (e.target.className === 'add-btn') {
-                addCard(parseInt(e.target.getAttribute('data-id')));
+                let elementListId = parseInt(e.target.closest('.lane').querySelector('.list').getAttribute('data-id'));
+                addCard(elementListId);
             }
         }
     });
@@ -165,7 +167,7 @@ let idCount = getAllUserCards().length;
 /* Funcionalidad para agregar Tarjeta */
 function addCard(listId) {
     const list = getList(listId);
-    const listElement = document.querySelector('#list' + list.id);
+    const listElement = document.querySelector(`ul[data-id="${list.id}"]`);
 
     listElement.innerHTML += `<li id="input" contenteditable="true"></li>`;
 
@@ -178,12 +180,12 @@ function addCard(listId) {
             idCount += 1;
 
             const html = `
-                <li id="card${idCount}" data-id="${idCount}" draggable="true">
-                    <span data-id=${idCount}" contenteditable="false">${cardName}</span>
+                <li data-id="${idCount}" draggable="true">
+                    <span contenteditable="false">${cardName}</span>
                     <div>
-                        <i class="edit-btn fa-solid fa-pencil" data-id=${idCount}"></i>
-                        <i class="move-btn fa-solid fa-arrows-up-down-left-right" data-id=${idCount}"></i>
-                        <i class="delete-btn fa-solid fa-xmark" data-id=${idCount}"></i>
+                        <i class="edit-btn fa-solid fa-pencil"></i>
+                        <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
+                        <i class="delete-btn fa-solid fa-xmark"></i>
                     </div>
                 </li>
             `;
@@ -219,7 +221,7 @@ function addCard(listId) {
 /* Funcionalidad para editar Tarjeta */
 function editCard(cardId) {
     const card = getCard(cardId);
-    const cardElement = document.querySelector('#card' + cardId);
+    const cardElement = document.querySelector(`li[data-id="${cardId}"]`);
     const spanElement = cardElement.querySelector('span');
 
     spanElement.setAttribute('contenteditable', 'true');
@@ -264,8 +266,7 @@ function moveCard() {
     if (dragTargetCard) {
         afterCard = getCard(parseInt(dragTargetCard.getAttribute('data-id')));
         let i = newList.cards.findIndex(obj => obj.id === afterCard.id)
-
-        newList.cards.splice(i+1, 0, card);
+        newList.cards.splice(i + 1, 0, card);
     } else {
         newList.cards.push(card);
     }
@@ -278,7 +279,7 @@ function moveCard() {
 function deleteCard(cardId) {
     const card = getCard(cardId);
     const list = getList(card.listId);
-    const cardElement = document.querySelector('#card' + cardId);
+    const cardElement = document.querySelector(`li[data-id="${cardId}"]`);
     const confirmation = window.confirm(`¿Estás seguro que deseas borrar la tarjeta "${card.name}"?`);
 
     if (confirmation) {
