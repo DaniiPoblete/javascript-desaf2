@@ -5,14 +5,17 @@
 }
 
 main {
-	display: flex;
-	flex-direction: column;
 	padding: 2rem 3rem;
+}
+
+.top-section {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
 }
 
 .tips {
 	font-size: 0.8rem;
-	align-self: flex-start;
 	margin-bottom: 2rem;
 	padding: 1rem;
 	border: 1px solid #607d8b;
@@ -21,6 +24,17 @@ main {
 
 .tips ul {
 	padding-left: 1rem;
+}
+
+.delete-all-btn {
+	padding: 0.5rem;
+	cursor: pointer;
+	border: 1px solid #607d8b;
+	background: none;
+}
+
+.delete-all-btn i {
+	margin-left: 0.5rem;
 }
 
 .lanes {
@@ -56,8 +70,8 @@ main {
 }
 
 .lane .list {
-	margin-bottom: 1rem;
 	min-height: 2rem;
+	margin-bottom: 1rem;
 }
 
 .list li {
@@ -69,6 +83,10 @@ main {
 	border-radius: 0.5rem;
 	background: #ffffffa8;
 	gap: 1rem;
+}
+
+.list li.dragging {
+	opacity: 0.4;
 }
 
 .list li div {
@@ -90,13 +108,9 @@ main {
 	font-size: 1rem;
 }
 
-.lane button {
+.lane .add-btn {
 	padding: 0.5rem;
 	cursor: pointer;
 	border: 1px solid white;
 	background: none;
-}
-
-.list li.dragging {
-	opacity: 0.4;
 }

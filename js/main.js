@@ -1,27 +1,20 @@
 /* Listas y tarjetas del usuario */
-const userLists = [
-    {
-        id: 1,
-        name: 'Lista de tareas',
-        cards: [
-            {id: 1, name: 'Tarea 1', listId: 1},
-        ]
-    },
-    {
-        id: 2,
-        name: 'En proceso',
-        cards: [
-            {id: 2, name: 'Tarea 2', listId: 2},
-            {id: 3, name: 'Tarea 3', listId: 2},
-            {id: 4, name: 'Tarea 4', listId: 2},
-        ]
-    },
-    {
-        id: 3,
-        name: 'Hecho',
-        cards: []
-    },
-];
+const defaultUserLists = [{
+    id: 1, name: 'Lista de tareas', cards: []
+}, {
+    id: 2, name: 'En proceso', cards: []
+}, {
+    id: 3, name: 'Hecho', cards: []
+},];
+
+/* Seteo de LocalStorage */
+const userLists = JSON.parse(localStorage.getItem('Lists')) ?? defaultUserLists;
+let idCount = JSON.parse(localStorage.getItem('ID counter')) ?? 0;
+
+function setLocalStorage() {
+    localStorage.setItem('Lists', JSON.stringify(userLists));
+    localStorage.setItem('ID counter', JSON.stringify(idCount));
+}
 
 const listsElement = document.querySelector('#lanes');
 
@@ -43,7 +36,7 @@ function showLists() {
                     </div>
                 </li>
             `;
-        })
+        });
 
         listsTemplate += `
             <div class="lane">
@@ -54,7 +47,7 @@ function showLists() {
                 <button class="add-btn">Agregar una tarjeta</button>
             </div>
         `;
-    })
+    });
 
     listsElement.innerHTML = listsTemplate;
 }
@@ -85,21 +78,17 @@ setCardEvents();
 
 /* Funcionalidad Drag & Drop */
 // TODO revisar caso en que se dropea en contenedor no habilitado
-
-const ulElements = document.querySelectorAll('.lane');
 let dragSourceCard;
 let dragSourceList;
 let dragTargetCard;
 let dragTargetList;
 
 function setDragAndDropEvents() {
-    ulElements.forEach(el => {
-        el.addEventListener('dragstart', handleDragStart);
-        el.addEventListener('dragend', handleDragEnd);
-        el.addEventListener('dragover', handleDragOver);
-        el.addEventListener('dragenter', handleDragEnter);
-        el.addEventListener('drop', handleDrop);
-    })
+    listsElement.addEventListener('dragstart', handleDragStart);
+    listsElement.addEventListener('dragend', handleDragEnd);
+    listsElement.addEventListener('dragover', handleDragOver);
+    listsElement.addEventListener('dragenter', handleDragEnter);
+    listsElement.addEventListener('drop', handleDrop);
 }
 
 function handleDragStart(e) {
@@ -112,7 +101,7 @@ function handleDragStart(e) {
 
 function handleDragEnd(e) {
     if (e.target.tagName === 'LI') {
-        dragSourceCard.classList.remove('dragging');
+        dragSourceCard.removeAttribute('class');
         moveCard();
     }
 }
@@ -162,8 +151,6 @@ function getList(listId) {
     return userLists.find(obj => obj.id === listId);
 }
 
-let idCount = getAllUserCards().length;
-
 /* Funcionalidad para agregar Tarjeta */
 function addCard(listId) {
     const list = getList(listId);
@@ -199,12 +186,12 @@ function addCard(listId) {
 
             console.log(`Tarjeta "${cardName}" agregada exitosamente`)
             console.log('Nuevo array > ', userLists)
+
+            setLocalStorage();
         }
     }
 
-    inputElement.addEventListener('focusout', e => {
-        inputElement.remove();
-    })
+    inputElement.addEventListener('focusout', inputElement.remove);
 
     inputElement.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
@@ -215,7 +202,7 @@ function addCard(listId) {
         if (e.key === 'Escape') {
             inputElement.blur();
         }
-    })
+    });
 }
 
 /* Funcionalidad para editar Tarjeta */
@@ -233,13 +220,15 @@ function editCard(cardId) {
 
             console.log(`Tarjeta "${card.name}" actualizada exitosamente`)
             console.log('Nuevo array > ', userLists)
+
+            setLocalStorage();
         }
     }
 
-    spanElement.addEventListener('focusout', e => {
+    spanElement.addEventListener('focusout', () => {
         spanElement.setAttribute('contenteditable', 'false');
         spanElement.textContent = card.name;
-    })
+    });
 
     spanElement.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
@@ -250,7 +239,7 @@ function editCard(cardId) {
         if (e.key === 'Escape') {
             spanElement.blur();
         }
-    })
+    });
 }
 
 /* Funcionalidad para mover Tarjeta */
@@ -265,7 +254,7 @@ function moveCard() {
 
     if (dragTargetCard) {
         afterCard = getCard(parseInt(dragTargetCard.getAttribute('data-id')));
-        let i = newList.cards.findIndex(obj => obj.id === afterCard.id)
+        let i = newList.cards.findIndex(obj => obj.id === afterCard.id);
         newList.cards.splice(i + 1, 0, card);
     } else {
         newList.cards.push(card);
@@ -273,6 +262,8 @@ function moveCard() {
 
     console.log(`Tarjeta "${card.name}" movida exitosamente`)
     console.log('Nuevo array > ', userLists)
+
+    setLocalStorage();
 }
 
 /* Funcionalidad para eliminar Tarjeta */
@@ -288,6 +279,8 @@ function deleteCard(cardId) {
 
         console.log(`Tarjeta "${card.name}" eliminada exitosamente`)
         console.log('Nuevo array > ', userLists)
+
+        setLocalStorage();
     }
 }
 
@@ -300,4 +293,21 @@ function setCursorPositionAtEnd(element) {
     range.collapse(false);
     selection.addRange(range);
     element.focus();
+}
+
+/* Funcionalidad para eliminar todas las tarjetas */
+const deleteAllBtnElement = document.querySelector('.delete-all-btn');
+deleteAllBtnElement.addEventListener('click', deleteAllCards);
+
+function deleteAllCards() {
+    const confirmation = window.confirm('¿Estás seguro que deseas borrar todas las tarjetas?');
+    if (confirmation) {
+        userLists.forEach(list => {
+            list.cards = [];
+        });
+
+        idCount = 0;
+        localStorage.clear();
+        showLists();
+    }
 }
