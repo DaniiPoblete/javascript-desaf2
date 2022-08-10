@@ -57,19 +57,17 @@ showLists();
 /* Se agregan Event Listener para funcionalidades Agregar, Editar y Eliminar tarjeta */
 function setCardEvents() {
     listsElement.addEventListener('click', (e) => {
-        if (e.target) {
-            if (e.target.classList.contains('edit-btn')) {
-                let elementCardId = parseInt(e.target.closest('li').getAttribute('data-id'));
-                editCard(elementCardId);
-            }
-            if (e.target.classList.contains('delete-btn')) {
-                let elementCardId = parseInt(e.target.closest('li').getAttribute('data-id'));
-                deleteCard(elementCardId);
-            }
-            if (e.target.className === 'add-btn') {
-                let elementListId = parseInt(e.target.closest('.lane').querySelector('.list').getAttribute('data-id'));
-                addCard(elementListId);
-            }
+        if (e.target?.classList.contains('edit-btn')) {
+            let elementCardId = parseInt(e.target.closest('li').getAttribute('data-id'));
+            editCard(elementCardId);
+        }
+        if (e.target?.classList.contains('delete-btn')) {
+            let elementCardId = parseInt(e.target.closest('li').getAttribute('data-id'));
+            deleteCard(elementCardId);
+        }
+        if (e.target?.className === 'add-btn') {
+            let elementListId = parseInt(e.target.closest('.lane').querySelector('.list').getAttribute('data-id'));
+            addCard(elementListId);
         }
     });
 }
@@ -122,16 +120,12 @@ function handleDragEnter(e) {
 }
 
 function handleDragOver(e) {
-    if (e.preventDefault) {
-        e.preventDefault();
-    }
-
+    e.preventDefault?.();
     return false;
 }
 
 function handleDrop(e) {
     e.stopPropagation();
-
     return false;
 }
 
@@ -164,7 +158,7 @@ function addCard(listId) {
     function saveCard() {
         if (inputElement.textContent.trim().length > 0) {
             const cardName = inputElement.textContent;
-            idCount += 1;
+            idCount++;
 
             const html = `
                 <li data-id="${idCount}" draggable="true">
