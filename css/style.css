@@ -114,3 +114,16 @@ main {
 	border: 1px solid white;
 	background: none;
 }
+
+/* SweetAlert */
+.swal2-title-custom {
+	font-size: 1.2rem !important;
+	font-weight: 500 !important;
+}
+
+.swal2-styled {
+	width: 80px;
+	padding: 0.5rem !important;
+	border-radius: 0 !important;
+	margin: .3125rem 0.5rem !important;
+}

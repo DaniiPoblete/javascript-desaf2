@@ -174,14 +174,23 @@ function addCard(listId) {
             const template = document.createElement('template');
             template.innerHTML = html.trim();
             const cardElement = template.content.firstElementChild;
-            listElement.appendChild(cardElement);
 
+            listElement.appendChild(cardElement);
             list.cards.push({id: idCount, name: cardName, listId: list.id});
 
-            console.log(`Tarjeta "${cardName}" agregada exitosamente`)
-            console.log('Nuevo array > ', userLists)
-
             setLocalStorage();
+
+            Swal.fire({
+                icon: 'success',
+                title: `Tarjeta <b>${cardName}</b> agregada exitosamente`,
+                position: 'top',
+                width: '450px',
+                customClass : {
+                    title: 'swal2-title-custom',
+                }
+            });
+
+            console.log('Nuevo array > ', userLists)
         }
     }
 
@@ -189,6 +198,7 @@ function addCard(listId) {
 
     inputElement.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
+            e.preventDefault();
             saveCard();
             inputElement.blur();
         }
@@ -212,10 +222,20 @@ function editCard(cardId) {
         if (spanElement.textContent.trim().length > 0 && spanElement.textContent !== card.name) {
             card.name = spanElement.textContent;
 
-            console.log(`Tarjeta "${card.name}" actualizada exitosamente`)
-            console.log('Nuevo array > ', userLists)
-
             setLocalStorage();
+
+            Swal.fire({
+                icon: 'success',
+                title: `Tarjeta <b>${card.name}</b> actualizada exitosamente`,
+                showConfirmButton: true,
+                position: 'top',
+                width: '450px',
+                customClass : {
+                    title: 'swal2-title-custom',
+                }
+            });
+
+            console.log('Nuevo array > ', userLists)
         }
     }
 
@@ -226,6 +246,7 @@ function editCard(cardId) {
 
     spanElement.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
+            e.preventDefault();
             saveCard();
             spanElement.blur();
         }
@@ -254,10 +275,9 @@ function moveCard() {
         newList.cards.push(card);
     }
 
-    console.log(`Tarjeta "${card.name}" movida exitosamente`)
-    console.log('Nuevo array > ', userLists)
-
     setLocalStorage();
+
+    console.log('Nuevo array > ', userLists)
 }
 
 /* Funcionalidad para eliminar Tarjeta */
@@ -265,17 +285,38 @@ function deleteCard(cardId) {
     const card = getCard(cardId);
     const list = getList(card.listId);
     const cardElement = document.querySelector(`li[data-id="${cardId}"]`);
-    const confirmation = window.confirm(`¿Estás seguro que deseas borrar la tarjeta "${card.name}"?`);
 
-    if (confirmation) {
-        cardElement.remove();
-        list.cards = list.cards.filter(obj => obj.id !== card.id);
+    Swal.fire({
+        title: `¿Estás seguro que deseas borrar la tarjeta <b>${card.name}</b>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+        position: 'top',
+        width: '450px',
+        customClass : {
+            title: 'swal2-title-custom',
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            cardElement.remove();
+            list.cards = list.cards.filter(obj => obj.id !== card.id);
 
-        console.log(`Tarjeta "${card.name}" eliminada exitosamente`)
-        console.log('Nuevo array > ', userLists)
+            setLocalStorage();
 
-        setLocalStorage();
-    }
+            Swal.fire({
+                icon: 'success',
+                title: `Tarjeta <b>${card.name}</b> eliminada exitosamente`,
+                position: 'top',
+                width: '450px',
+                customClass : {
+                    title: 'swal2-title-custom',
+                }
+            });
+
+            console.log('Nuevo array > ', userLists)
+        }
+    })
 }
 
 /* Funcionalidad para posicionar el cursor al final del texto editable */
@@ -294,14 +335,40 @@ const deleteAllBtnElement = document.querySelector('.delete-all-btn');
 deleteAllBtnElement.addEventListener('click', deleteAllCards);
 
 function deleteAllCards() {
-    const confirmation = window.confirm('¿Estás seguro que deseas borrar todas las tarjetas?');
-    if (confirmation) {
-        userLists.forEach(list => {
-            list.cards = [];
-        });
+    if (getAllUserCards().length === 0) return;
 
-        idCount = 0;
-        localStorage.clear();
-        showLists();
-    }
+    Swal.fire({
+        title: '¿Estás seguro de borrar todas las tarjetas?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+        position: 'top',
+        width: '450px',
+        customClass : {
+            title: 'swal2-title-custom',
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            userLists.forEach(list => {
+                list.cards = [];
+            });
+
+            idCount = 0;
+            localStorage.clear();
+            showLists();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Se han eliminado todas las tarjetas',
+                position: 'top',
+                width: '450px',
+                customClass : {
+                    title: 'swal2-title-custom',
+                }
+            });
+
+            console.log('Nuevo array > ', userLists)
+        }
+    })
 }
