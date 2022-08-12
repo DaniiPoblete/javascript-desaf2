@@ -39,12 +39,12 @@ function showLists() {
         });
 
         listsTemplate += `
-            <div class="lane">
+            <div class="lane" data-id="${list.id}">
                 <p>${list.name}</p>
                 <ul class="list" data-id="${list.id}">
                     ${cardsTemplate}
                 </ul>
-                <button class="add-btn">Agregar una tarjeta</button>
+                <button class="add-btn" data-id="${list.id}">Agregar una tarjeta</button>
             </div>
         `;
     });
@@ -66,7 +66,7 @@ function setCardEvents() {
             deleteCard(elementCardId);
         }
         if (e.target?.className === 'add-btn') {
-            let elementListId = parseInt(e.target.closest('.lane').querySelector('.list').getAttribute('data-id'));
+            let elementListId = parseInt(e.target.getAttribute('data-id'));
             addCard(elementListId);
         }
     });
@@ -148,12 +148,18 @@ function getList(listId) {
 /* Funcionalidad para agregar Tarjeta */
 function addCard(listId) {
     const list = getList(listId);
-    const listElement = document.querySelector(`ul[data-id="${list.id}"]`);
 
+    const laneElement = document.querySelector(`.lane[data-id="${listId}"]`);
+    laneElement.innerHTML += `<button class="save-btn hidden">Guardar</button>`;
+
+    const listElement = laneElement.querySelector('ul');
     listElement.innerHTML += `<li id="input" contenteditable="true"></li>`;
 
-    const inputElement = document.querySelector('#input');
+    const inputElement = laneElement.querySelector('#input');
     inputElement.focus();
+
+    const addButtonElement = laneElement.querySelector('.add-btn');
+    const saveButtonElement = laneElement.querySelector('.save-btn');
 
     function saveCard() {
         if (inputElement.textContent.trim().length > 0) {
@@ -185,7 +191,7 @@ function addCard(listId) {
                 title: `Tarjeta <b>${cardName}</b> agregada exitosamente`,
                 position: 'top',
                 width: '450px',
-                customClass : {
+                customClass: {
                     title: 'swal2-title-custom',
                 }
             });
@@ -194,11 +200,9 @@ function addCard(listId) {
         }
     }
 
-    inputElement.addEventListener('focusout', inputElement.remove);
-
     inputElement.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
-            e.preventDefault();
+            e.preventDefault(); // Evita propagar 'enter' a SweetAlert
             saveCard();
             inputElement.blur();
         }
@@ -206,17 +210,53 @@ function addCard(listId) {
         if (e.key === 'Escape') {
             inputElement.blur();
         }
+
+        if (((/^.$/u).test(e.key) || e.key === 'Dead') && e.key !== ' ' && inputElement.textContent.trim().length === 0) {
+            addButtonElement.classList.add('hidden');
+            saveButtonElement.classList.remove('hidden');
+        }
+
+        if ((e.key === 'Backspace' || e.key === 'Delete') && inputElement.textContent.trim().length === 1) {
+            addButtonElement.classList.remove('hidden');
+            saveButtonElement.classList.add('hidden');
+        }
     });
+
+    inputElement.addEventListener('focusout', e => {
+        if (e.relatedTarget === saveButtonElement) {
+            setTimeout(() => {
+            }, 50)
+        } else {
+            inputElement.remove();
+            saveButtonElement.remove();
+            addButtonElement.classList.remove('hidden');
+        }
+    });
+
+    saveButtonElement.addEventListener('click', e => {
+        saveCard();
+        inputElement.remove();
+        saveButtonElement.remove();
+        addButtonElement.classList.remove('hidden');
+    })
 }
 
 /* Funcionalidad para editar Tarjeta */
 function editCard(cardId) {
     const card = getCard(cardId);
+    const list = getList(card.listId);
+
+    const laneElement = document.querySelector(`.lane[data-id="${list.id}"]`);
+    laneElement.innerHTML += `<button class="save-btn hidden">Guardar</button>`;
+
     const cardElement = document.querySelector(`li[data-id="${cardId}"]`);
     const spanElement = cardElement.querySelector('span');
 
     spanElement.setAttribute('contenteditable', 'true');
     setCursorPositionAtEnd(spanElement);
+
+    const addButtonElement = laneElement.querySelector('.add-btn');
+    const saveButtonElement = laneElement.querySelector('.save-btn');
 
     function saveCard() {
         if (spanElement.textContent.trim().length > 0 && spanElement.textContent !== card.name) {
@@ -230,7 +270,7 @@ function editCard(cardId) {
                 showConfirmButton: true,
                 position: 'top',
                 width: '450px',
-                customClass : {
+                customClass: {
                     title: 'swal2-title-custom',
                 }
             });
@@ -239,14 +279,9 @@ function editCard(cardId) {
         }
     }
 
-    spanElement.addEventListener('focusout', () => {
-        spanElement.setAttribute('contenteditable', 'false');
-        spanElement.textContent = card.name;
-    });
-
     spanElement.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
-            e.preventDefault();
+            e.preventDefault(); // Evita propagar 'enter' a SweetAlert
             saveCard();
             spanElement.blur();
         }
@@ -254,7 +289,39 @@ function editCard(cardId) {
         if (e.key === 'Escape') {
             spanElement.blur();
         }
+
+        if (((/^.$/u).test(e.key) || e.key === 'Dead' || e.key === ' ' || e.key === 'Backspace' || e.key === 'Delete')) {
+            setTimeout(() => {
+                if (spanElement.textContent !== card.name && spanElement.textContent.trim().length > 0) {
+                    addButtonElement.classList.add('hidden');
+                    saveButtonElement.classList.remove('hidden');
+                } else {
+                    addButtonElement.classList.remove('hidden');
+                    saveButtonElement.classList.add('hidden');
+                }
+            }, 50)
+        }
     });
+
+    spanElement.addEventListener('focusout', e => {
+        if (e.relatedTarget === saveButtonElement) {
+            setTimeout(() => {
+            }, 50)
+        } else {
+            spanElement.setAttribute('contenteditable', 'false');
+            spanElement.textContent = card.name;
+            saveButtonElement.remove();
+            addButtonElement.classList.remove('hidden');
+        }
+    });
+
+    saveButtonElement.addEventListener('click', e => {
+        saveCard();
+        spanElement.setAttribute('contenteditable', 'false');
+        spanElement.textContent = card.name;
+        saveButtonElement.remove();
+        addButtonElement.classList.remove('hidden');
+    })
 }
 
 /* Funcionalidad para mover Tarjeta */
@@ -294,7 +361,7 @@ function deleteCard(cardId) {
         cancelButtonText: 'No',
         position: 'top',
         width: '450px',
-        customClass : {
+        customClass: {
             title: 'swal2-title-custom',
         }
     }).then((result) => {
@@ -309,7 +376,7 @@ function deleteCard(cardId) {
                 title: `Tarjeta <b>${card.name}</b> eliminada exitosamente`,
                 position: 'top',
                 width: '450px',
-                customClass : {
+                customClass: {
                     title: 'swal2-title-custom',
                 }
             });
@@ -345,7 +412,7 @@ function deleteAllCards() {
         cancelButtonText: 'No',
         position: 'top',
         width: '450px',
-        customClass : {
+        customClass: {
             title: 'swal2-title-custom',
         }
     }).then((result) => {
@@ -363,7 +430,7 @@ function deleteAllCards() {
                 title: 'Se han eliminado todas las tarjetas',
                 position: 'top',
                 width: '450px',
-                customClass : {
+                customClass: {
                     title: 'swal2-title-custom',
                 }
             });

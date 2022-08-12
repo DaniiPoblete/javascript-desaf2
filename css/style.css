@@ -9,21 +9,7 @@ main {
 }
 
 .top-section {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-}
-
-.tips {
-	font-size: 0.8rem;
 	margin-bottom: 2rem;
-	padding: 1rem;
-	border: 1px solid #607d8b;
-	border-radius: 1rem;
-}
-
-.tips ul {
-	padding-left: 1rem;
 }
 
 .delete-all-btn {
@@ -108,7 +94,7 @@ main {
 	font-size: 1rem;
 }
 
-.lane .add-btn {
+.lane .add-btn, .lane .save-btn {
 	padding: 0.5rem;
 	cursor: pointer;
 	border: 1px solid white;
@@ -123,7 +109,11 @@ main {
 
 .swal2-styled {
 	width: 80px;
+	margin: .3125rem 0.5rem !important;
 	padding: 0.5rem !important;
 	border-radius: 0 !important;
-	margin: .3125rem 0.5rem !important;
+}
+
+.hidden {
+	display: none;
 }
