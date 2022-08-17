@@ -91,7 +91,11 @@ let dragSourceCard = null;
 let dragSourceList = null;
 let dragTargetCard = null;
 let dragTargetList = null;
-let dropAfter; // boolean true --> insertar después, false --> insertar antes
+let dropAfterFlag; // boolean true --> insertar después, false --> insertar antes
+
+let availableContainerFlag = false;
+let nextSibling = null
+
 const lanesElements = document.querySelectorAll('.lane');
 
 function setDragAndDropEvents() {
@@ -105,11 +109,16 @@ function setDragAndDropEvents() {
 }
 
 function handleDragStart(e) {
+    availableContainerFlag = false;
+
     if (e.target.classList.contains('card')) {
         dragSourceCard = e.target;
         dragSourceList = dragSourceCard.parentElement;
         dragSourceCard.classList.add('dragging');
         dragTargetCard = dragSourceCard;
+
+        nextSibling = dragSourceCard.nextSibling;
+
     } else { // Previene drag en img usuario
         e.preventDefault();
     }
@@ -118,14 +127,21 @@ function handleDragStart(e) {
 function handleDragEnd() {
     dragSourceCard.classList.remove('dragging');
 
-    if (dragSourceCard !== dragTargetCard) {
-        moveCard();
+    // Termina evento drag en un contenedor no habilitado
+    if (!availableContainerFlag) {
+        // Existe un elemento después de la posición original
+        if (nextSibling?.nextSibling) {
+            dragSourceList.insertBefore(dragSourceCard, nextSibling);
+        } else {
+            dragSourceList.appendChild(dragSourceCard)
+        }
     }
 
     dragSourceCard = null;
     dragSourceList = null;
     dragTargetCard = null;
     dragTargetList = null;
+    nextSibling = null;
 }
 
 function handleDragEnter(e) {
@@ -142,31 +158,35 @@ function handleDragEnter(e) {
         }
     }
 
-    // Sobre tarjeta
+    // Sobre otra tarjeta
     if (target.classList.contains('card') && !target.classList.contains('dragging')) {
         dragTargetCard = target;
     }
 }
 
 function handleDragOver(e) {
+    e.preventDefault?.();
+
     if (e.target.classList.contains('card') && !e.target.classList.contains('dragging')) {
         const offset = e.y - dragSourceCard.getBoundingClientRect().top - (e.target.getBoundingClientRect().height / 2);
 
         if (offset >= 0) {
             dragTargetCard.parentNode.insertBefore(dragSourceCard, dragTargetCard.nextSibling);
-            dropAfter = true;
+            dropAfterFlag = true;
         } else {
             dragTargetCard.parentNode.insertBefore(dragSourceCard, dragTargetCard);
-            dropAfter = false;
+            dropAfterFlag = false;
         }
     }
-
-    e.preventDefault?.();
 }
 
-function handleDrop(e) {
-    e.stopPropagation();
-    return false;
+function handleDrop() { // Se dispara cuando termina en contenedor habilitado
+    if (dragSourceCard !== dragTargetCard) {
+        availableContainerFlag = true;
+        moveCard();
+    } else {
+        availableContainerFlag = false;
+    }
 }
 
 setDragAndDropEvents();
@@ -383,7 +403,7 @@ function moveCard() {
         const targetCard = getCard(parseInt(dragTargetCard.getAttribute('data-id')));
         let index = newList.cards.findIndex(obj => obj.id === targetCard.id);
 
-        if (dropAfter) {
+        if (dropAfterFlag) {
             newList.cards.splice(index + 1, 0, card);
         } else {
             newList.cards.splice(index, 0, card);
