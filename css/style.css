@@ -50,7 +50,7 @@ main {
 	background: #cfe3ca;
 }
 
-.lane p {
+.lane .title {
 	font-weight: 600;
 	margin-bottom: 1rem;
 }

@@ -48,7 +48,7 @@ function showLists() {
 
         listsTemplate += `
             <div class="lane" data-id="${list.id}">
-                <p>${list.name}</p>
+                <p class="title">${list.name}</p>
                 <div class="list" data-id="${list.id}">
                     ${cardsTemplate}
                 </div>
@@ -87,11 +87,10 @@ function setCardEvents() {
 setCardEvents();
 
 /* Funcionalidad Drag & Drop */
-// TODO revisar caso en que se dropea en contenedor no habilitado
-let dragSourceCard;
-let dragSourceList;
-let dragTargetCard;
-let dragTargetList;
+let dragSourceCard = null;
+let dragSourceList = null;
+let dragTargetCard = null;
+let dragTargetList = null;
 let dropAfter; // boolean true --> insertar después, false --> insertar antes
 const lanesElements = document.querySelectorAll('.lane');
 
@@ -110,26 +109,42 @@ function handleDragStart(e) {
         dragSourceCard = e.target;
         dragSourceList = dragSourceCard.parentElement;
         dragSourceCard.classList.add('dragging');
+        dragTargetCard = dragSourceCard;
     } else { // Previene drag en img usuario
         e.preventDefault();
     }
 }
 
-function handleDragEnd(e) {
-    if (e.target.classList.contains('card')) {
-        dragSourceCard.classList.remove('dragging');
+function handleDragEnd() {
+    dragSourceCard.classList.remove('dragging');
+
+    if (dragSourceCard !== dragTargetCard) {
         moveCard();
     }
+
+    dragSourceCard = null;
+    dragSourceList = null;
+    dragTargetCard = null;
+    dragTargetList = null;
 }
 
 function handleDragEnter(e) {
-    if (e.target.classList.contains('list') && e.target.innerHTML.trim() === '') {
-        dragTargetCard = null;
-        dragTargetList = e.target;
-        dragTargetList.appendChild(dragSourceCard);
-    } else if (e.target.classList.contains('card') && !e.target.classList.contains('dragging')) {
-        dragTargetCard = e.target;
-        dragTargetList = dragTargetCard.parentElement;
+    const target = e.target;
+    dragTargetList = target.closest('.lane').querySelector('.list');
+
+    // Sobre contenedor habilitado
+    if (target.classList.contains('lane') || target.classList.contains('list') ||
+        target.classList.contains('add-btn') || target.classList.contains('title')) {
+
+        if (dragTargetList !== document.querySelector('.dragging').parentElement) {
+            dragTargetList.appendChild(dragSourceCard);
+            dragTargetCard = null;
+        }
+    }
+
+    // Sobre tarjeta
+    if (target.classList.contains('card') && !target.classList.contains('dragging')) {
+        dragTargetCard = target;
     }
 }
 
@@ -264,7 +279,7 @@ function addCard(listId) {
         }
     });
 
-    saveButtonElement.addEventListener('click', e => {
+    saveButtonElement.addEventListener('click', () => {
         saveCard();
         inputElement.remove();
         saveButtonElement.remove();
@@ -346,7 +361,7 @@ function editCard(cardId) {
         }
     });
 
-    saveButtonElement.addEventListener('click', e => {
+    saveButtonElement.addEventListener('click', () => {
         saveCard();
         spanElement.setAttribute('contenteditable', 'false');
         spanElement.textContent = card.name;
@@ -360,19 +375,18 @@ function moveCard() {
     const card = getCard(parseInt(dragSourceCard.getAttribute('data-id')));
     const oldList = getList(card.listId);
     const newList = getList(parseInt(dragTargetList.getAttribute('data-id')));
-    let targetCard;
 
     card.listId = newList.id;
     oldList.cards = oldList.cards.filter(obj => obj.id !== card.id);
 
     if (dragTargetCard) {
-        targetCard = getCard(parseInt(dragTargetCard.getAttribute('data-id')));
-        let i = newList.cards.findIndex(obj => obj.id === targetCard.id);
+        const targetCard = getCard(parseInt(dragTargetCard.getAttribute('data-id')));
+        let index = newList.cards.findIndex(obj => obj.id === targetCard.id);
 
         if (dropAfter) {
-            newList.cards.splice(i + 1, 0, card);
+            newList.cards.splice(index + 1, 0, card);
         } else {
-            newList.cards.splice(i, 0, card);
+            newList.cards.splice(index, 0, card);
         }
 
     } else {
@@ -391,7 +405,7 @@ function deleteCard(cardId) {
     const cardElement = document.querySelector(`.card[data-id="${cardId}"]`);
 
     Swal.fire({
-        title: `¿Estás seguro que deseas borrar la tarjeta <b>${card.name}</b>?`,
+        title: `¿Estás seguro de que deseas borrar la tarjeta <b>${card.name}</b>?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Sí',
@@ -454,6 +468,10 @@ function deleteAllCards() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
+            lanesElements.forEach(el => {
+                el.querySelector('.list').innerHTML = '';
+            })
+
             userLists.forEach(list => {
                 list.cards = [];
             });
@@ -461,7 +479,6 @@ function deleteAllCards() {
             idCount = 0;
             localStorage.removeItem('Lists');
             localStorage.removeItem('ID counter');
-            showLists();
 
             Swal.fire({
                 icon: 'success',
