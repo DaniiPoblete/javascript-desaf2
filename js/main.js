@@ -38,7 +38,7 @@ function showLists() {
                             <i class="delete-btn fa-solid fa-xmark"></i>
                         </div>
                         <div class="user tooltip">
-                            <img src="${card.assignedUser?.picture.medium || '../resources/images/user.png'}" alt="">
+                            <img src="${card.assignedUser?.picture.medium || 'resources/images/user.png'}" alt="">
                             <span class="tooltiptext">${tooltipText}</span>
                         </div>
                     </div>
@@ -201,7 +201,7 @@ function addCard(listId) {
                             <i class="delete-btn fa-solid fa-xmark"></i>
                         </div>
                         <div class="user tooltip">
-                            <img src="../resources/images/user.png" alt="">
+                            <img src="resources/images/user.png" alt="">
                             <span class="tooltiptext">Asignar usuario</span>
                         </div>
                     </div>
