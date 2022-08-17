@@ -109,19 +109,13 @@ function handleDragEnd(e) {
 }
 
 function handleDragEnter(e) {
-    if (e.target.classList.contains('list')) {
+    if (e.target.classList.contains('list') && e.target.innerHTML.trim() === '') {
         dragTargetCard = null;
         dragTargetList = e.target;
         dragTargetList.appendChild(dragSourceCard);
     } else if (e.target.tagName === 'LI' && !e.target.classList.contains('dragging')) {
         dragTargetCard = e.target;
         dragTargetList = dragTargetCard.parentElement;
-    } else if (e.target.classList.contains('dragging')) {
-
-    } else {
-        dragTargetList = e.target.closest('.lane').querySelector('ul');
-        dragTargetCard = null;
-        dragTargetList.appendChild(dragSourceCard);
     }
 }
 
