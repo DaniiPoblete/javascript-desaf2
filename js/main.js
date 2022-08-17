@@ -27,23 +27,25 @@ function showLists() {
 
         list.cards.forEach(card => {
             cardsTemplate += `
-                <li data-id="${card.id}" draggable="true">
+                <div class="card" data-id="${card.id}" draggable="true">
                     <span contenteditable="false">${card.name}</span>
-                    <div>
-                        <i class="edit-btn fa-solid fa-pencil"></i>
-                        <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
-                        <i class="delete-btn fa-solid fa-xmark"></i>
+                    <div class="details">
+                        <div class="actions">
+                            <i class="edit-btn fa-solid fa-pencil"></i>
+                            <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
+                            <i class="delete-btn fa-solid fa-xmark"></i>
+                        </div>
                     </div>
-                </li>
+                </div>
             `;
         });
 
         listsTemplate += `
             <div class="lane" data-id="${list.id}">
                 <p>${list.name}</p>
-                <ul class="list" data-id="${list.id}">
+                <div class="list" data-id="${list.id}">
                     ${cardsTemplate}
-                </ul>
+                </div>
                 <button class="add-btn" data-id="${list.id}">Agregar una tarjeta</button>
             </div>
         `;
@@ -58,11 +60,11 @@ showLists();
 function setCardEvents() {
     listsElement.addEventListener('click', (e) => {
         if (e.target?.classList.contains('edit-btn')) {
-            let elementCardId = parseInt(e.target.closest('li').getAttribute('data-id'));
+            let elementCardId = parseInt(e.target.closest('.card').getAttribute('data-id'));
             editCard(elementCardId);
         }
         if (e.target?.classList.contains('delete-btn')) {
-            let elementCardId = parseInt(e.target.closest('li').getAttribute('data-id'));
+            let elementCardId = parseInt(e.target.closest('.card').getAttribute('data-id'));
             deleteCard(elementCardId);
         }
         if (e.target?.className === 'add-btn') {
@@ -94,7 +96,7 @@ function setDragAndDropEvents() {
 }
 
 function handleDragStart(e) {
-    if (e.target.tagName === 'LI') {
+    if (e.target.classList.contains('card')) {
         dragSourceCard = e.target;
         dragSourceList = dragSourceCard.parentElement;
         dragSourceCard.classList.add('dragging');
@@ -102,8 +104,8 @@ function handleDragStart(e) {
 }
 
 function handleDragEnd(e) {
-    if (e.target.tagName === 'LI') {
-        dragSourceCard.removeAttribute('class');
+    if (e.target.classList.contains('card')) {
+        dragSourceCard.classList.remove('dragging');
         moveCard();
     }
 }
@@ -113,14 +115,14 @@ function handleDragEnter(e) {
         dragTargetCard = null;
         dragTargetList = e.target;
         dragTargetList.appendChild(dragSourceCard);
-    } else if (e.target.tagName === 'LI' && !e.target.classList.contains('dragging')) {
+    } else if (e.target.classList.contains('card') && !e.target.classList.contains('dragging')) {
         dragTargetCard = e.target;
         dragTargetList = dragTargetCard.parentElement;
     }
 }
 
 function handleDragOver(e) {
-    if (e.target.tagName === 'LI' && !e.target.classList.contains('dragging')) {
+    if (e.target.classList.contains('card') && !e.target.classList.contains('dragging')) {
         const offset = e.y - dragSourceCard.getBoundingClientRect().top - (e.target.getBoundingClientRect().height / 2);
 
         if (offset >= 0) {
@@ -163,10 +165,10 @@ function addCard(listId) {
     const laneElement = document.querySelector(`.lane[data-id="${listId}"]`);
     laneElement.innerHTML += `<button class="save-btn hidden">Guardar</button>`;
 
-    const listElement = laneElement.querySelector('ul');
-    listElement.innerHTML += `<li id="input" contenteditable="true"></li>`;
+    const listElement = laneElement.querySelector('.list');
+    listElement.innerHTML += `<div class="card" id="input" contenteditable="true"></div>`;
 
-    const inputElement = laneElement.querySelector('#input');
+    const inputElement = listElement.querySelector('#input');
     inputElement.focus();
 
     const addButtonElement = laneElement.querySelector('.add-btn');
@@ -178,14 +180,16 @@ function addCard(listId) {
             idCount++;
 
             const html = `
-                <li data-id="${idCount}" draggable="true">
+                <div class="card" data-id="${idCount}" draggable="true">
                     <span contenteditable="false">${cardName}</span>
-                    <div>
-                        <i class="edit-btn fa-solid fa-pencil"></i>
-                        <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
-                        <i class="delete-btn fa-solid fa-xmark"></i>
+                    <div class="details">
+                        <div class="actions">
+                            <i class="edit-btn fa-solid fa-pencil"></i>
+                            <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
+                            <i class="delete-btn fa-solid fa-xmark"></i>
+                        </div>
                     </div>
-                </li>
+                </div>
             `;
 
             const template = document.createElement('template');
@@ -260,7 +264,7 @@ function editCard(cardId) {
     const laneElement = document.querySelector(`.lane[data-id="${list.id}"]`);
     laneElement.innerHTML += `<button class="save-btn hidden">Guardar</button>`;
 
-    const cardElement = document.querySelector(`li[data-id="${cardId}"]`);
+    const cardElement = laneElement.querySelector(`.card[data-id="${cardId}"]`);
     const spanElement = cardElement.querySelector('span');
 
     spanElement.setAttribute('contenteditable', 'true');
@@ -368,7 +372,7 @@ function moveCard() {
 function deleteCard(cardId) {
     const card = getCard(cardId);
     const list = getList(card.listId);
-    const cardElement = document.querySelector(`li[data-id="${cardId}"]`);
+    const cardElement = document.querySelector(`.card[data-id="${cardId}"]`);
 
     Swal.fire({
         title: `¿Estás seguro que deseas borrar la tarjeta <b>${card.name}</b>?`,

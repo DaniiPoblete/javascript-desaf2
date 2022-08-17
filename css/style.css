@@ -60,9 +60,9 @@ main {
 	margin-bottom: 1rem;
 }
 
-.list li {
+.list .card {
 	display: flex;
-	align-items: start;
+	align-items: flex-start;
 	justify-content: space-between;
 	margin: 0.5rem 0;
 	padding: 0.5rem;
@@ -71,26 +71,34 @@ main {
 	gap: 1rem;
 }
 
-.list li.dragging {
+.list .card.dragging {
 	opacity: 0.4;
 }
 
-.list li div {
+.list .card span {
+	padding: 0 4px;
+}
+
+.list .card .details {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.list .card .details .actions {
 	display: flex;
 	align-items: center;
 }
 
-.list li span {
-	padding: 0 4px;
-}
-
-.list li i {
+.list .card .details .actions i {
 	font-size: 0.8rem;
 	padding: 0 2px;
 	cursor: pointer;
 }
 
-.list li i.fa-xmark {
+.list .card .details .actions i.fa-xmark {
 	font-size: 1rem;
 }
 
