@@ -26,6 +26,8 @@ function showLists() {
         let cardsTemplate = ``;
 
         list.cards.forEach(card => {
+            const tooltipText = card.assignedUser ? card.assignedUser.name.first + ' ' + card.assignedUser.name.last : 'Asignar usuario';
+
             cardsTemplate += `
                 <div class="card" data-id="${card.id}" draggable="true">
                     <span contenteditable="false">${card.name}</span>
@@ -34,6 +36,10 @@ function showLists() {
                             <i class="edit-btn fa-solid fa-pencil"></i>
                             <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
                             <i class="delete-btn fa-solid fa-xmark"></i>
+                        </div>
+                        <div class="user tooltip">
+                            <img src="${card.assignedUser?.picture.medium || '../resources/images/user.png'}" alt="">
+                            <span class="tooltiptext">${tooltipText}</span>
                         </div>
                     </div>
                 </div>
@@ -71,6 +77,10 @@ function setCardEvents() {
             let elementListId = parseInt(e.target.getAttribute('data-id'));
             addCard(elementListId);
         }
+        if (e.target?.tagName === 'IMG') {
+            let elementCardId = parseInt(e.target.closest('.card').getAttribute('data-id'));
+            setProfile(elementCardId);
+        }
     });
 }
 
@@ -100,6 +110,8 @@ function handleDragStart(e) {
         dragSourceCard = e.target;
         dragSourceList = dragSourceCard.parentElement;
         dragSourceCard.classList.add('dragging');
+    } else { // Previene drag en img usuario
+        e.preventDefault();
     }
 }
 
@@ -187,6 +199,10 @@ function addCard(listId) {
                             <i class="edit-btn fa-solid fa-pencil"></i>
                             <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
                             <i class="delete-btn fa-solid fa-xmark"></i>
+                        </div>
+                        <div class="user tooltip">
+                            <img src="../resources/images/user.png" alt="">
+                            <span class="tooltiptext">Asignar usuario</span>
                         </div>
                     </div>
                 </div>
@@ -443,7 +459,8 @@ function deleteAllCards() {
             });
 
             idCount = 0;
-            localStorage.clear();
+            localStorage.removeItem('Lists');
+            localStorage.removeItem('ID counter');
             showLists();
 
             Swal.fire({
@@ -458,5 +475,95 @@ function deleteAllCards() {
 
             console.log('Nuevo array > ', userLists)
         }
+    })
+}
+
+/* Funcionalidad para asignar usuario a tarjeta */
+let userProfiles = JSON.parse(localStorage.getItem('User Profiles')) ?? [];
+
+async function getUsers() {
+    const res = await fetch('https://randomuser.me/api/?results=9&nat=mx&inc=gender,name,picture');
+    const data = await res.json();
+    return data['results'];
+}
+
+if (userProfiles.length === 0) {
+    getUsers().then(res => {
+        userProfiles = res;
+        localStorage.setItem('User Profiles', JSON.stringify(userProfiles));
+    })
+}
+
+function setProfile(cardId) {
+    let html = '<div class="profiles">';
+
+    userProfiles.forEach((el, i) => {
+        let {name, picture} = el;
+        html += `
+            <div class="profile" data-index="${i}">
+                <img src="${picture['medium']}" alt="">
+                <p>${name['first']} ${name['last']}</p>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+
+    Swal.fire({
+        title: 'Asignar un usuario',
+        html: html,
+        showCancelButton: true,
+        focusConfirm: false,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        customClass: {
+            title: 'swal2-title-custom',
+        },
+        preConfirm: () => {
+            if (!selectedProfileIndex) {
+                Swal.showValidationMessage('Selecciona un usuario')
+            }
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            let selectedProfile = userProfiles[selectedProfileIndex];
+
+            const cardElement = document.querySelector(`.card[data-id="${cardId}"]`);
+            const tooltipText = selectedProfile.name.first + ' ' + selectedProfile.name.last;
+
+            const assignedUserElement = cardElement.querySelector('.user');
+            assignedUserElement.classList.add('tooltip');
+            assignedUserElement.innerHTML = `
+                <img src="${selectedProfile.picture.medium}" alt="">
+                <span class="tooltiptext">${tooltipText}</span>
+            `;
+
+            const card = getCard(cardId);
+            card.assignedUser = selectedProfile;
+            localStorage.setItem('Lists', JSON.stringify(userLists));
+
+            const title = selectedProfile.gender === 'female' ? `Usuaria <b>${tooltipText}</b> asignada exitosamente` : `Usuario <b>${tooltipText}</b> asignado exitosamente`;
+
+            Swal.fire({
+                icon: 'success',
+                title: title,
+                position: 'top',
+                width: '450px',
+                customClass: {
+                    title: 'swal2-title-custom',
+                }
+            });
+        }
+    });
+
+    const profileElements = document.querySelectorAll('.profile');
+    let selectedProfileIndex;
+
+    profileElements.forEach(el => {
+        el.addEventListener('click', e => {
+            document.querySelector('.selected')?.classList.remove('selected');
+            selectedProfileIndex = e.target.closest('.profile').getAttribute('data-index');
+            e.target.closest('.profile').classList.add('selected');
+        })
     })
 }
