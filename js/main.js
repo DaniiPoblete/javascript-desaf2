@@ -80,13 +80,17 @@ let dragSourceCard;
 let dragSourceList;
 let dragTargetCard;
 let dragTargetList;
+let dropAfter; // boolean true --> insertar después, false --> insertar antes
+const lanesElements = document.querySelectorAll('.lane');
 
 function setDragAndDropEvents() {
-    listsElement.addEventListener('dragstart', handleDragStart);
-    listsElement.addEventListener('dragend', handleDragEnd);
-    listsElement.addEventListener('dragover', handleDragOver);
-    listsElement.addEventListener('dragenter', handleDragEnter);
-    listsElement.addEventListener('drop', handleDrop);
+    lanesElements.forEach(el => {
+        el.addEventListener('dragstart', handleDragStart);
+        el.addEventListener('dragend', handleDragEnd);
+        el.addEventListener('dragover', handleDragOver);
+        el.addEventListener('dragenter', handleDragEnter);
+        el.addEventListener('drop', handleDrop);
+    })
 }
 
 function handleDragStart(e) {
@@ -105,23 +109,30 @@ function handleDragEnd(e) {
 }
 
 function handleDragEnter(e) {
-    if (e.target.classList.contains('list')) { // sobre lista vacía
-        dragTargetList = e.target;
+    if (e.target.classList.contains('list') && e.target.innerHTML.trim() === '') {
         dragTargetCard = null;
+        dragTargetList = e.target;
         dragTargetList.appendChild(dragSourceCard);
-    }
-
-    if (e.target.tagName === 'LI' && !e.target.classList.contains('dragging')) { // sobre tarjeta
+    } else if (e.target.tagName === 'LI' && !e.target.classList.contains('dragging')) {
         dragTargetCard = e.target;
         dragTargetList = dragTargetCard.parentElement;
-        dragTargetCard.parentNode.insertBefore(dragSourceCard, dragTargetCard.nextSibling);
-        // TODO agregar funcionalidad para mover tarjeta sobre otra
     }
 }
 
 function handleDragOver(e) {
+    if (e.target.tagName === 'LI' && !e.target.classList.contains('dragging')) {
+        const offset = e.y - dragSourceCard.getBoundingClientRect().top - (e.target.getBoundingClientRect().height / 2);
+
+        if (offset >= 0) {
+            dragTargetCard.parentNode.insertBefore(dragSourceCard, dragTargetCard.nextSibling);
+            dropAfter = true;
+        } else {
+            dragTargetCard.parentNode.insertBefore(dragSourceCard, dragTargetCard);
+            dropAfter = false;
+        }
+    }
+
     e.preventDefault?.();
-    return false;
 }
 
 function handleDrop(e) {
@@ -329,15 +340,21 @@ function moveCard() {
     const card = getCard(parseInt(dragSourceCard.getAttribute('data-id')));
     const oldList = getList(card.listId);
     const newList = getList(parseInt(dragTargetList.getAttribute('data-id')));
-    let afterCard;
+    let targetCard;
 
     card.listId = newList.id;
     oldList.cards = oldList.cards.filter(obj => obj.id !== card.id);
 
     if (dragTargetCard) {
-        afterCard = getCard(parseInt(dragTargetCard.getAttribute('data-id')));
-        let i = newList.cards.findIndex(obj => obj.id === afterCard.id);
-        newList.cards.splice(i + 1, 0, card);
+        targetCard = getCard(parseInt(dragTargetCard.getAttribute('data-id')));
+        let i = newList.cards.findIndex(obj => obj.id === targetCard.id);
+
+        if (dropAfter) {
+            newList.cards.splice(i + 1, 0, card);
+        } else {
+            newList.cards.splice(i, 0, card);
+        }
+
     } else {
         newList.cards.push(card);
     }
