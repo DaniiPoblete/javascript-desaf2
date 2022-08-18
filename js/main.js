@@ -490,7 +490,7 @@ function deleteAllCards() {
         if (result.isConfirmed) {
             lanesElements.forEach(el => {
                 el.querySelector('.list').innerHTML = '';
-            })
+            });
 
             userLists.forEach(list => {
                 list.cards = [];
@@ -525,10 +525,14 @@ async function getUsers() {
 }
 
 if (userProfiles.length === 0) {
-    getUsers().then(res => {
-        userProfiles = res;
-        localStorage.setItem('User Profiles', JSON.stringify(userProfiles));
-    })
+    getUsers()
+        .then(res => {
+            userProfiles = res;
+            localStorage.setItem('User Profiles', JSON.stringify(userProfiles));
+        })
+        .catch(err => {
+            console.log('Error API:', err);
+        })
 }
 
 function setProfile(cardId) {
@@ -595,12 +599,14 @@ function setProfile(cardId) {
 
     const profileElements = document.querySelectorAll('.profile');
     let selectedProfileIndex;
+    const confirmBtnElement = document.querySelector('.swal2-confirm');
 
     profileElements.forEach(el => {
         el.addEventListener('click', e => {
             document.querySelector('.selected')?.classList.remove('selected');
             selectedProfileIndex = e.target.closest('.profile').getAttribute('data-index');
             e.target.closest('.profile').classList.add('selected');
+            e.detail === 1 ? confirmBtnElement.focus() : confirmBtnElement.click();
         })
     })
 }
