@@ -2,6 +2,15 @@ const uid = () => {
     return Date.now();
 }
 
+const emptyState = `<lottie-player src="https://assets2.lottiefiles.com/packages/lf20_kgbbisxb.json"
+  background="transparent"  speed="1"  style="width: 500px; height: 500px;"  loop  autoplay></lottie-player>`;
+
+const randomColors = ['#cec6d9', '#c7dbe7', '#cfe3ca', '#d2d5dd', '#eddfef', '#ece4db', '#dee2ff'];
+
+function getRandomColor() {
+    return randomColors[Math.floor(Math.random() * randomColors.length)];
+}
+
 /* Listas y tarjetas del usuario */
 const defaultUserLists = [{
     id: uid(), name: 'Lista de tareas', color: '#cec6d9', cards: []
@@ -12,7 +21,9 @@ const defaultUserLists = [{
 },];
 
 /* Seteo de LocalStorage */
-let userLists = JSON.parse(localStorage.getItem('Lists')) ?? defaultUserLists;
+let userLists = JSON.parse(localStorage.getItem('Lists')) ?? defaultUserLists.map(a => {
+    return {...a}
+});
 
 function setLocalStorage() {
     localStorage.setItem('Lists', JSON.stringify(userLists));
@@ -25,7 +36,7 @@ function showLists() {
     let listsTemplate = ``;
 
     if (userLists.length === 0) {
-        listsElement.innerHTML = 'Agrega una lista :)'; // TODO agregar contenido lindo
+        listsElement.innerHTML = emptyState;
         return
     }
 
@@ -287,22 +298,11 @@ function addCard(listId) {
             list.cards.push(card);
 
             setLocalStorage();
-
-            Swal.fire({
-                icon: 'success',
-                title: `Tarjeta <b>${card.name}</b> agregada exitosamente`,
-                position: 'top',
-                width: '450px',
-                customClass: {
-                    title: 'swal2-title-custom',
-                }
-            });
         }
     }
 
     inputElement.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
-            e.preventDefault(); // Evita propagar 'enter' a SweetAlert
             saveCard();
             inputElement.blur();
         }
@@ -364,17 +364,6 @@ function editCard(cardId) {
             card.name = spanElement.textContent;
 
             setLocalStorage();
-
-            Swal.fire({
-                icon: 'success',
-                title: `Tarjeta <b>${card.name}</b> actualizada exitosamente`,
-                showConfirmButton: true,
-                position: 'top',
-                width: '450px',
-                customClass: {
-                    title: 'swal2-title-custom',
-                }
-            });
         }
     }
 
@@ -517,9 +506,9 @@ function deleteAllLists() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            listsElement.innerHTML = '';
+            listsElement.innerHTML = emptyState;
             userLists = [];
-            localStorage.removeItem('Lists');
+            setLocalStorage();
 
             Swal.fire({
                 icon: 'success',
@@ -572,6 +561,7 @@ function setProfile(cardId) {
     Swal.fire({
         title: 'Asignar un usuario',
         html: html,
+        position: 'top',
         showCancelButton: true,
         focusConfirm: false,
         confirmButtonText: 'Guardar',
@@ -701,7 +691,7 @@ function deleteList(listId) {
             userLists = userLists.filter(obj => obj.id !== list.id);
 
             if (userLists.length === 0) {
-                listsElement.innerHTML = 'Agrega una lista :)';
+                listsElement.innerHTML = emptyState;
             }
 
             setLocalStorage();
@@ -728,7 +718,7 @@ function addList() {
         listsElement.innerHTML = '';
     }
 
-    const list = {id: uid(), name: 'Nueva lista', color: '#cdd1dd', cards: []};
+    const list = {id: uid(), name: 'Nueva lista', color: getRandomColor(), cards: []};
 
     let newLaneTemplate = `            
         <div class="lane" data-id="${list.id}" style="background: ${list.color}">
@@ -753,7 +743,7 @@ function addList() {
     setLocalStorage();
 
     lanesElements = document.querySelectorAll('.lane');
-    setDragAndDropEvents()
+    setDragAndDropEvents();
 
-    editList(list.id)
+    editList(list.id);
 }
