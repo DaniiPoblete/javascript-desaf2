@@ -9,23 +9,28 @@ main {
 }
 
 .top-section {
+	display: flex;
+	justify-content: space-between;
 	margin-bottom: 2rem;
 }
 
-.delete-all-btn {
+.top-section button {
+	width: 150px;
 	padding: 0.5rem;
 	cursor: pointer;
 	border: 1px solid #607d8b;
 	background: none;
 }
 
-.delete-all-btn i {
+.top-section button i {
 	margin-left: 0.5rem;
 }
 
 .lanes {
 	display: flex;
+	overflow-x: auto;
 	align-items: flex-start;
+	padding-bottom: 100px;
 	gap: 1rem;
 }
 
@@ -34,30 +39,67 @@ main {
 	flex-basis: 100%;
 	flex-direction: column;
 	box-sizing: border-box;
+	min-width: 350px;
 	padding: 1rem;
 	border-radius: 0.5rem;
 }
 
-.lane:nth-child(1) {
-	background: #cec6d9;
+.lane .details {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
-.lane:nth-child(2) {
-	background: #c7dbe7;
-}
-
-.lane:nth-child(3) {
-	background: #cfe3ca;
-}
-
-.lane .title {
-	font-weight: 600;
+.lane > .details {
 	margin-bottom: 1rem;
+}
+
+.lane > .details .title {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.lane .details .title .name {
+	font-weight: 600;
+	padding: 4px;
+}
+
+.lane .name:focus-visible, .list .card span:focus-visible {
+	cursor: text;
+	outline-color: #607d8b;
+}
+
+.lane .details .actions {
+	display: flex;
+	align-items: center;
+}
+
+.lane .details .actions i {
+	font-size: 1rem;
+	padding: 4px;
+	cursor: pointer;
+	color: rgba(0, 0, 0, 0.7);
+}
+
+.lane .details .actions i.fa-xmark {
+	font-size: 1.2rem;
 }
 
 .lane .list {
 	min-height: 2rem;
 	margin-bottom: 1rem;
+}
+
+.list #input {
+	margin: 0.5rem 0;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+	background: #ffffffa8;
+}
+
+.list #input:focus-visible {
+	outline-color: #607d8b;
 }
 
 .list .card {
@@ -66,36 +108,32 @@ main {
 	justify-content: space-between;
 	margin: 0.5rem 0;
 	padding: 0.5rem;
+	cursor: -webkit-grab; /* Chrome 1-21, Safari 4+ */
+	cursor: -moz-grab; /* Firefox 1.5-26 */
+	cursor: grab; /* W3C standards syntax, should come least */
 	border-radius: 0.5rem;
 	background: #ffffffa8;
 	gap: 1rem;
 }
 
 .list .card.dragging {
+	cursor: -webkit-grabbing;
+	cursor: -moz-grabbing;
+	cursor: grabbing;
 	opacity: 0.4;
 }
 
 .list .card span {
-	padding: 0 4px;
+	padding: 4px;
 }
 
 .list .card .details {
-	display: flex;
-	align-items: center;
 	flex-direction: column;
-	justify-content: space-between;
 	gap: 2rem;
-}
-
-.list .card .details .actions {
-	display: flex;
-	align-items: center;
 }
 
 .list .card .details .actions i {
 	font-size: 0.8rem;
-	padding: 0 2px;
-	cursor: pointer;
 }
 
 .list .card .details .actions i.fa-xmark {
@@ -113,7 +151,7 @@ main {
 	border-radius: 5rem;
 }
 
-.lane .add-btn, .lane .save-btn {
+.lane .add-card-btn, .lane .save-card-btn {
 	padding: 0.5rem;
 	cursor: pointer;
 	border: 1px solid white;
@@ -151,14 +189,12 @@ main {
 }
 
 .profiles .profile:hover {
+	cursor: pointer;
 	background: #efefef;
 }
 
 .profiles .profile img {
 	border-radius: 5rem;
-}
-
-.profiles .profile.hover {
 }
 
 .profiles .profile.selected {
@@ -208,4 +244,22 @@ main {
 .tooltip:hover .tooltiptext {
 	visibility: visible;
 	opacity: 1;
+}
+
+input[type=color] {
+	width: 25px;
+	height: 25px;
+	cursor: pointer;
+	border: none;
+	border-radius: 40px;
+	background: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+	border: solid 1px #ffffff;
+	border-radius: 40px;
 }

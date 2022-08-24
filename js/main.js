@@ -1,19 +1,21 @@
+const uid = () => {
+    return Date.now();
+}
+
 /* Listas y tarjetas del usuario */
 const defaultUserLists = [{
-    id: 1, name: 'Lista de tareas', cards: []
+    id: uid(), name: 'Lista de tareas', color: '#cec6d9', cards: []
 }, {
-    id: 2, name: 'En proceso', cards: []
+    id: uid() - 1, name: 'En proceso', color: '#c7dbe7', cards: []
 }, {
-    id: 3, name: 'Hecho', cards: []
+    id: uid() - 2, name: 'Hecho', color: '#cfe3ca', cards: []
 },];
 
 /* Seteo de LocalStorage */
-const userLists = JSON.parse(localStorage.getItem('Lists')) ?? defaultUserLists;
-let idCount = JSON.parse(localStorage.getItem('ID counter')) ?? 0;
+let userLists = JSON.parse(localStorage.getItem('Lists')) ?? defaultUserLists;
 
 function setLocalStorage() {
     localStorage.setItem('Lists', JSON.stringify(userLists));
-    localStorage.setItem('ID counter', JSON.stringify(idCount));
 }
 
 const listsElement = document.querySelector('#lanes');
@@ -21,6 +23,11 @@ const listsElement = document.querySelector('#lanes');
 /* Genera HTML en base al arreglo userLists */
 function showLists() {
     let listsTemplate = ``;
+
+    if (userLists.length === 0) {
+        listsElement.innerHTML = 'Agrega una lista :)'; // TODO agregar contenido lindo
+        return
+    }
 
     userLists.forEach(list => {
         let cardsTemplate = ``;
@@ -33,9 +40,8 @@ function showLists() {
                     <span contenteditable="false">${card.name}</span>
                     <div class="details">
                         <div class="actions">
-                            <i class="edit-btn fa-solid fa-pencil"></i>
-                            <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
-                            <i class="delete-btn fa-solid fa-xmark"></i>
+                            <i class="edit-card-btn fa-solid fa-pencil"></i>
+                            <i class="delete-card-btn fa-solid fa-xmark"></i>
                         </div>
                         <div class="user tooltip">
                             <img src="${card.assignedUser?.picture.medium || 'resources/images/user.png'}" alt="">
@@ -47,12 +53,21 @@ function showLists() {
         });
 
         listsTemplate += `
-            <div class="lane" data-id="${list.id}">
-                <p class="title">${list.name}</p>
+            <div class="lane" data-id="${list.id}" style="background: ${list.color}">
+                <div class="details">
+                    <div class="title">
+                        <input class="color-picker" type="color" value="${list.color}">
+                        <p class="name">${list.name}</p>
+                    </div>
+                    <div class="actions">
+                        <i class="edit-list-btn fa-solid fa-pencil"></i>
+                        <i class="delete-list-btn fa-solid fa-xmark"></i>
+                    </div>
+                </div>
                 <div class="list" data-id="${list.id}">
                     ${cardsTemplate}
                 </div>
-                <button class="add-btn" data-id="${list.id}">Agregar una tarjeta</button>
+                <button class="add-card-btn" data-id="${list.id}">Agregar una tarjeta</button>
             </div>
         `;
     });
@@ -65,15 +80,15 @@ showLists();
 /* Se agregan Event Listener para funcionalidades Agregar, Editar y Eliminar tarjeta */
 function setCardEvents() {
     listsElement.addEventListener('click', (e) => {
-        if (e.target?.classList.contains('edit-btn')) {
+        if (e.target?.classList.contains('edit-card-btn')) {
             let elementCardId = parseInt(e.target.closest('.card').getAttribute('data-id'));
             editCard(elementCardId);
         }
-        if (e.target?.classList.contains('delete-btn')) {
+        if (e.target?.classList.contains('delete-card-btn')) {
             let elementCardId = parseInt(e.target.closest('.card').getAttribute('data-id'));
             deleteCard(elementCardId);
         }
-        if (e.target?.className === 'add-btn') {
+        if (e.target?.className === 'add-card-btn') {
             let elementListId = parseInt(e.target.getAttribute('data-id'));
             addCard(elementListId);
         }
@@ -96,7 +111,7 @@ let dropAfterFlag; // boolean true --> insertar después, false --> insertar ant
 let availableContainerFlag = false;
 let nextSibling = null
 
-const lanesElements = document.querySelectorAll('.lane');
+let lanesElements = document.querySelectorAll('.lane');
 
 function setDragAndDropEvents() {
     lanesElements.forEach(el => {
@@ -150,7 +165,7 @@ function handleDragEnter(e) {
 
     // Sobre contenedor habilitado
     if (target.classList.contains('lane') || target.classList.contains('list') ||
-        target.classList.contains('add-btn') || target.classList.contains('title')) {
+        target.classList.contains('add-card-btn') || target.classList.contains('title')) {
 
         if (dragTargetList !== document.querySelector('.dragging').parentElement) {
             dragTargetList.appendChild(dragSourceCard);
@@ -191,6 +206,30 @@ function handleDrop() { // Se dispara cuando termina en contenedor habilitado
 
 setDragAndDropEvents();
 
+/* Funcionalidad Color picker */
+function setColorPickerEvents() {
+    listsElement.addEventListener('input', watchColorPicker);
+    listsElement.addEventListener('change', changeColorPicker);
+}
+
+function watchColorPicker(e) {
+    if (e.target?.classList.contains('color-picker')) {
+        e.target.closest('.lane').style.background = e.target.value;
+    }
+}
+
+function changeColorPicker(e) {
+    if (e.target?.classList.contains('color-picker')) {
+        e.target.setAttribute('value', e.target.value);
+        const listId = parseInt(e.target.closest('.lane').getAttribute('data-id'));
+        const list = getList(listId);
+        list.color = e.target.value;
+        localStorage.setItem('Lists', JSON.stringify(userLists));
+    }
+}
+
+setColorPickerEvents();
+
 /* Funciones de búsqueda (Listas y Tarjetas) */
 function getAllUserCards() {
     return userLists.map(obj => obj.cards).flat();
@@ -210,30 +249,28 @@ function addCard(listId) {
     const list = getList(listId);
 
     const laneElement = document.querySelector(`.lane[data-id="${listId}"]`);
-    laneElement.innerHTML += `<button class="save-btn hidden">Guardar</button>`;
+    laneElement.innerHTML += `<button class="save-card-btn hidden">Guardar</button>`;
 
     const listElement = laneElement.querySelector('.list');
-    listElement.innerHTML += `<div class="card" id="input" contenteditable="true"></div>`;
+    listElement.innerHTML += `<div id="input" contenteditable="true"></div>`;
 
     const inputElement = listElement.querySelector('#input');
     inputElement.focus();
 
-    const addButtonElement = laneElement.querySelector('.add-btn');
-    const saveButtonElement = laneElement.querySelector('.save-btn');
+    const addButtonElement = laneElement.querySelector('.add-card-btn');
+    const saveButtonElement = laneElement.querySelector('.save-card-btn');
 
     function saveCard() {
         if (inputElement.textContent.trim().length > 0) {
-            const cardName = inputElement.textContent;
-            idCount++;
+            const card = {id: uid(), name: inputElement.textContent, listId: list.id}
 
             const html = `
-                <div class="card" data-id="${idCount}" draggable="true">
-                    <span contenteditable="false">${cardName}</span>
+                <div class="card" data-id="${card.id}" draggable="true">
+                    <span contenteditable="false">${card.name}</span>
                     <div class="details">
                         <div class="actions">
-                            <i class="edit-btn fa-solid fa-pencil"></i>
-                            <i class="move-btn fa-solid fa-arrows-up-down-left-right"></i>
-                            <i class="delete-btn fa-solid fa-xmark"></i>
+                            <i class="edit-card-btn fa-solid fa-pencil"></i>
+                            <i class="delete-card-btn fa-solid fa-xmark"></i>
                         </div>
                         <div class="user tooltip">
                             <img src="resources/images/user.png" alt="">
@@ -246,23 +283,20 @@ function addCard(listId) {
             const template = document.createElement('template');
             template.innerHTML = html.trim();
             const cardElement = template.content.firstElementChild;
-
             listElement.appendChild(cardElement);
-            list.cards.push({id: idCount, name: cardName, listId: list.id});
+            list.cards.push(card);
 
             setLocalStorage();
 
             Swal.fire({
                 icon: 'success',
-                title: `Tarjeta <b>${cardName}</b> agregada exitosamente`,
+                title: `Tarjeta <b>${card.name}</b> agregada exitosamente`,
                 position: 'top',
                 width: '450px',
                 customClass: {
                     title: 'swal2-title-custom',
                 }
             });
-
-            console.log('Nuevo array > ', userLists)
         }
     }
 
@@ -313,16 +347,17 @@ function editCard(cardId) {
     const list = getList(card.listId);
 
     const laneElement = document.querySelector(`.lane[data-id="${list.id}"]`);
-    laneElement.innerHTML += `<button class="save-btn hidden">Guardar</button>`;
+    laneElement.innerHTML += `<button class="save-card-btn hidden">Guardar</button>`;
 
     const cardElement = laneElement.querySelector(`.card[data-id="${cardId}"]`);
     const spanElement = cardElement.querySelector('span');
 
     spanElement.setAttribute('contenteditable', 'true');
     setCursorPositionAtEnd(spanElement);
+    laneElement.scrollIntoView();
 
-    const addButtonElement = laneElement.querySelector('.add-btn');
-    const saveButtonElement = laneElement.querySelector('.save-btn');
+    const addButtonElement = laneElement.querySelector('.add-card-btn');
+    const saveButtonElement = laneElement.querySelector('.save-card-btn');
 
     function saveCard() {
         if (spanElement.textContent.trim().length > 0 && spanElement.textContent !== card.name) {
@@ -340,8 +375,6 @@ function editCard(cardId) {
                     title: 'swal2-title-custom',
                 }
             });
-
-            console.log('Nuevo array > ', userLists)
         }
     }
 
@@ -414,8 +447,6 @@ function moveCard() {
     }
 
     setLocalStorage();
-
-    console.log('Nuevo array > ', userLists)
 }
 
 /* Funcionalidad para eliminar Tarjeta */
@@ -451,8 +482,6 @@ function deleteCard(cardId) {
                     title: 'swal2-title-custom',
                 }
             });
-
-            console.log('Nuevo array > ', userLists)
         }
     })
 }
@@ -468,15 +497,15 @@ function setCursorPositionAtEnd(element) {
     element.focus();
 }
 
-/* Funcionalidad para eliminar todas las tarjetas */
+/* Funcionalidad para eliminar todas las listas */
 const deleteAllBtnElement = document.querySelector('.delete-all-btn');
-deleteAllBtnElement.addEventListener('click', deleteAllCards);
+deleteAllBtnElement.addEventListener('click', deleteAllLists);
 
-function deleteAllCards() {
-    if (getAllUserCards().length === 0) return;
+function deleteAllLists() {
+    if (userLists.length === 0) return;
 
     Swal.fire({
-        title: '¿Estás seguro de borrar todas las tarjetas?',
+        title: '¿Estás seguro de borrar todas las listas y tarjetas?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Sí',
@@ -488,29 +517,19 @@ function deleteAllCards() {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            lanesElements.forEach(el => {
-                el.querySelector('.list').innerHTML = '';
-            });
-
-            userLists.forEach(list => {
-                list.cards = [];
-            });
-
-            idCount = 0;
+            listsElement.innerHTML = '';
+            userLists = [];
             localStorage.removeItem('Lists');
-            localStorage.removeItem('ID counter');
 
             Swal.fire({
                 icon: 'success',
-                title: 'Se han eliminado todas las tarjetas',
+                title: 'Se han eliminado todas las listas y tarjetas',
                 position: 'top',
                 width: '450px',
                 customClass: {
                     title: 'swal2-title-custom',
                 }
             });
-
-            console.log('Nuevo array > ', userLists)
         }
     })
 }
@@ -581,7 +600,8 @@ function setProfile(cardId) {
 
             const card = getCard(cardId);
             card.assignedUser = selectedProfile;
-            localStorage.setItem('Lists', JSON.stringify(userLists));
+
+            setLocalStorage();
 
             const title = selectedProfile.gender === 'female' ? `Usuaria <b>${tooltipText}</b> asignada exitosamente` : `Usuario <b>${tooltipText}</b> asignado exitosamente`;
 
@@ -609,4 +629,131 @@ function setProfile(cardId) {
             e.detail === 1 ? confirmBtnElement.focus() : confirmBtnElement.click();
         })
     })
+}
+
+/* Se agregan Event Listener para funcionalidades Editar y Eliminar lista */
+function setListEvents() {
+    listsElement.addEventListener('click', (e) => {
+        if (e.target?.classList.contains('edit-list-btn')) {
+            let elementListId = parseInt(e.target.closest('.lane').getAttribute('data-id'));
+            editList(elementListId);
+        }
+        if (e.target?.classList.contains('delete-list-btn')) {
+            let elementListId = parseInt(e.target.closest('.lane').getAttribute('data-id'));
+            deleteList(elementListId);
+        }
+    });
+}
+
+setListEvents();
+
+function editList(listId) {
+    const list = getList(listId);
+    const laneElement = document.querySelector(`.lane[data-id="${listId}"]`);
+    laneElement.scrollIntoView();
+
+    const nameElement = laneElement.querySelector('.name');
+    nameElement.setAttribute('contenteditable', 'true');
+    setCursorPositionAtEnd(nameElement);
+
+    function saveList() {
+        if (nameElement.textContent.trim().length > 0 && nameElement.textContent !== list.name) {
+            list.name = nameElement.textContent;
+            setLocalStorage();
+        }
+    }
+
+    nameElement.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            saveList();
+            nameElement.blur();
+        }
+
+        if (e.key === 'Escape') {
+            nameElement.blur();
+        }
+    });
+
+    nameElement.addEventListener('focusout', e => {
+        nameElement.setAttribute('contenteditable', 'false');
+        nameElement.textContent = list.name;
+    });
+}
+
+function deleteList(listId) {
+    const list = getList(listId);
+    const laneElement = document.querySelector(`.lane[data-id="${listId}"]`);
+
+    Swal.fire({
+        title: `¿Estás seguro de que deseas borrar la lista <b>${list.name}</b>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí',
+        cancelButtonText: 'No',
+        position: 'top',
+        width: '450px',
+        customClass: {
+            title: 'swal2-title-custom',
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            laneElement.remove();
+            userLists = userLists.filter(obj => obj.id !== list.id);
+
+            if (userLists.length === 0) {
+                listsElement.innerHTML = 'Agrega una lista :)';
+            }
+
+            setLocalStorage();
+
+            Swal.fire({
+                icon: 'success',
+                title: `Lista <b>${list.name}</b> eliminada exitosamente`,
+                position: 'top',
+                width: '450px',
+                customClass: {
+                    title: 'swal2-title-custom',
+                }
+            });
+        }
+    })
+}
+
+/* Funcionalidad para agregar lista */
+const addListBtnElement = document.querySelector('.add-list-btn');
+addListBtnElement.addEventListener('click', addList);
+
+function addList() {
+    if (userLists.length === 0) {
+        listsElement.innerHTML = '';
+    }
+
+    const list = {id: uid(), name: 'Nueva lista', color: '#cdd1dd', cards: []};
+
+    let newLaneTemplate = `            
+        <div class="lane" data-id="${list.id}" style="background: ${list.color}">
+            <div class="details">
+                <div class="title">
+                    <input class="color-picker" type="color" value="${list.color}">
+                    <p class="name">${list.name}</p>
+                </div>
+                <div class="actions">
+                    <i class="edit-list-btn fa-solid fa-pencil"></i>
+                    <i class="delete-list-btn fa-solid fa-xmark"></i>
+                </div>
+            </div>
+            <div class="list" data-id="${list.id}">
+            </div>
+            <button class="add-card-btn" data-id="${list.id}">Agregar una tarjeta</button>
+        </div>
+    `
+
+    listsElement.innerHTML += newLaneTemplate;
+    userLists.push(list);
+    setLocalStorage();
+
+    lanesElements = document.querySelectorAll('.lane');
+    setDragAndDropEvents()
+
+    editList(list.id)
 }
