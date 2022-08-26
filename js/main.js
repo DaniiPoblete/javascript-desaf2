@@ -1,12 +1,15 @@
+/* Función para creación de ID única */
 const uid = () => {
 	return Date.now();
 };
 
+/* Contenido html para empty state */
 const emptyState = `
 	<lottie-player src="https://assets2.lottiefiles.com/packages/lf20_kgbbisxb.json"
 	               background="transparent" speed="1" style="width: 500px; height: 500px;" loop
 	               autoplay></lottie-player>`;
 
+/* Colores para nuevas listas */
 const randomColors = ['#cec6d9', '#c7dbe7', '#cfe3ca', '#d2d5dd', '#eddfef', '#ece4db', '#dee2ff'];
 
 function getRandomColor() {
@@ -15,11 +18,11 @@ function getRandomColor() {
 
 /* Listas y tarjetas del usuario */
 const defaultUserLists = [{
-	id: uid(), name: 'Lista de tareas', color: '#cec6d9', cards: []
+	id: uid(), name: 'Lista de tareas', color: randomColors[0], cards: []
 }, {
-	id: uid() - 1, name: 'En proceso', color: '#c7dbe7', cards: []
+	id: uid() - 1, name: 'En proceso', color: randomColors[1], cards: []
 }, {
-	id: uid() - 2, name: 'Hecho', color: '#cfe3ca', cards: []
+	id: uid() - 2, name: 'Hecho', color: randomColors[2], cards: []
 }];
 
 /* Seteo de LocalStorage */
@@ -31,16 +34,16 @@ function setLocalStorage() {
 	localStorage.setItem('Lists', JSON.stringify(userLists));
 }
 
-const listsElement = document.querySelector('#lanes');
+const lanesContainerElement = document.querySelector('#lanes');
 
 /* Genera HTML en base al arreglo userLists */
 function showLists() {
-	let listsTemplate = ``;
-
 	if (userLists.length === 0) {
-		listsElement.innerHTML = emptyState;
+		lanesContainerElement.innerHTML = emptyState;
 		return;
 	}
+
+	let listsTemplate = ``;
 
 	userLists.forEach(list => {
 		let cardsTemplate = ``;
@@ -85,14 +88,14 @@ function showLists() {
 		`;
 	});
 
-	listsElement.innerHTML = listsTemplate;
+	lanesContainerElement.innerHTML = listsTemplate;
 }
 
 showLists();
 
 /* Se agregan Event Listener para funcionalidades Agregar, Editar y Eliminar tarjeta */
 function setCardEvents() {
-	listsElement.addEventListener('click', (e) => {
+	lanesContainerElement.addEventListener('click', (e) => {
 		if (e.target?.classList.contains('edit-card-btn')) {
 			let elementCardId = parseInt(e.target.closest('.card').getAttribute('data-id'));
 			editCard(elementCardId);
@@ -124,16 +127,12 @@ let dropAfterFlag; // boolean true --> insertar después, false --> insertar ant
 let availableContainerFlag = false;
 let nextSibling = null;
 
-let lanesElements = document.querySelectorAll('.lane');
-
 function setDragAndDropEvents() {
-	lanesElements.forEach(el => {
-		el.addEventListener('dragstart', handleDragStart);
-		el.addEventListener('dragend', handleDragEnd);
-		el.addEventListener('dragover', handleDragOver);
-		el.addEventListener('dragenter', handleDragEnter);
-		el.addEventListener('drop', handleDrop);
-	});
+	lanesContainerElement.addEventListener('dragstart', handleDragStart);
+	lanesContainerElement.addEventListener('dragend', handleDragEnd);
+	lanesContainerElement.addEventListener('dragover', handleDragOver);
+	lanesContainerElement.addEventListener('dragenter', handleDragEnter);
+	lanesContainerElement.addEventListener('drop', handleDrop);
 }
 
 function handleDragStart(e) {
@@ -174,6 +173,9 @@ function handleDragEnd() {
 
 function handleDragEnter(e) {
 	const target = e.target;
+
+	if (e.target.classList.contains('lanes')) return;
+
 	dragTargetList = target.closest('.lane').querySelector('.list');
 
 	// Sobre contenedor habilitado
@@ -221,8 +223,8 @@ setDragAndDropEvents();
 
 /* Funcionalidad Color picker */
 function setColorPickerEvents() {
-	listsElement.addEventListener('input', watchColorPicker);
-	listsElement.addEventListener('change', changeColorPicker);
+	lanesContainerElement.addEventListener('input', watchColorPicker);
+	lanesContainerElement.addEventListener('change', changeColorPicker);
 }
 
 function watchColorPicker(e) {
@@ -237,7 +239,7 @@ function changeColorPicker(e) {
 		const listId = parseInt(e.target.closest('.lane').getAttribute('data-id'));
 		const list = getList(listId);
 		list.color = e.target.value;
-		localStorage.setItem('Lists', JSON.stringify(userLists));
+		setLocalStorage();
 	}
 }
 
@@ -508,7 +510,7 @@ function deleteAllLists() {
 		}
 	}).then((result) => {
 		if (result.isConfirmed) {
-			listsElement.innerHTML = emptyState;
+			lanesContainerElement.innerHTML = emptyState;
 			userLists = [];
 			setLocalStorage();
 
@@ -626,7 +628,7 @@ function setProfile(cardId) {
 
 /* Se agregan Event Listener para funcionalidades Editar y Eliminar lista */
 function setListEvents() {
-	listsElement.addEventListener('click', (e) => {
+	lanesContainerElement.addEventListener('click', (e) => {
 		if (e.target?.classList.contains('edit-list-btn')) {
 			let elementListId = parseInt(e.target.closest('.lane').getAttribute('data-id'));
 			editList(elementListId);
@@ -694,7 +696,7 @@ function deleteList(listId) {
 			userLists = userLists.filter(obj => obj.id !== list.id);
 
 			if (userLists.length === 0) {
-				listsElement.innerHTML = emptyState;
+				lanesContainerElement.innerHTML = emptyState;
 			}
 
 			setLocalStorage();
@@ -718,7 +720,7 @@ addListBtnElement.addEventListener('click', addList);
 
 function addList() {
 	if (userLists.length === 0) {
-		listsElement.innerHTML = '';
+		lanesContainerElement.innerHTML = '';
 	}
 
 	const list = {id: uid(), name: 'Nueva lista', color: getRandomColor(), cards: []};
@@ -741,12 +743,10 @@ function addList() {
 		</div>
 	`;
 
-	listsElement.innerHTML += newLaneTemplate;
+	lanesContainerElement.innerHTML += newLaneTemplate;
 	userLists.push(list);
-	setLocalStorage();
 
-	lanesElements = document.querySelectorAll('.lane');
-	setDragAndDropEvents();
+	setLocalStorage();
 
 	editList(list.id);
 }
